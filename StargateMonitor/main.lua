@@ -2,6 +2,7 @@
 --   Stargate Monitor
 -- created by lukaskabc
 --
+-- https://github.com/lukaskabc/StargateJourney-ComputerCraft-Programs/tree/main/StargateMonitor
 --
 -- written with Stargate Journey 0.6.17
 --
