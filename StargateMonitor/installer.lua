@@ -7,25 +7,8 @@ local GITHUB_URL = "https://raw.githubusercontent.com/lukaskabc/StargateJourney-
 
 print("This installer will donwload all files for gate monitor")
 printError("HTTP API has to be enabled in server config!")
-print("There are two options, files can be downloaded from github or pastebin")
-print("Download from github will always give you the newest code version available, but may require updating computercraft server config")
-print("Pastebin download may give outdated versions")
-print("GitHub requires allowed domain raw.githubusercontent.com")
-print("Pastebin requires allowed domain pastebin.com")
+print("requires allowed domain raw.githubusercontent.com for https connection")
 print("")
-print("1. GitHub")
-print("2. Pastebin")
-
-local option = read()
-local usePastebin = false
-
-if option == "1" or option == "Github" or option == "GitHub" or option == "github" then 
-    usePastebin = false
-elseif option == "2" or option == "Pastebin" or option == "pastebin" then 
-    usePastebin = true
-else
-    error("Unknwon input: "..option)
-end
 
 
 local files = {
@@ -103,8 +86,6 @@ for i, f in pairs(files) do
 
     if f.data ~= nil then
         saveFile(f.name, table.concat(f.data, "\n"))
-    elseif usePastebin then
-        shell.run("pastebin", "get", f.pastebin, f.name)
     else -- use github
         shell.run("wget", GITHUB_URL .. f.name, f.name)
     end

@@ -19,6 +19,7 @@
 **Known issues:**
  - When address is dialed too fast, gate state / visualisation may break as some computercraft events may be missed (lost)
  - When outgoing dialing is in progress and incomming connection occure
+ - When gate is closed imidiately after kawoosh, it may result in some chevrons being locked on the monitor
 
 ### Cartouche
   - Address book defined in file in file 1_cartouche.lua
