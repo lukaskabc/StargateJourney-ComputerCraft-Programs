@@ -8,6 +8,7 @@
 -- 
 -- CONFIGURATION
 --
+-- Use with advanced computer
 -- advanced monitor with size 2x3 (w x h)
 -- 
 -- should work with any compatible pair of interface and stargate
@@ -16,6 +17,9 @@
 local monitor = peripheral.wrap("left")
 local gateInterface = peripheral.find("basic_interface") or peripheral.find("crystal_interface") or peripheral.find("advanced_crystal_interface")
 
+-- I recommend to do not enable this
+-- enabling this will break the status 
+-- (in some cases it may get really fast/nearly instant and computer events will be lost)
 local allowFastDial = false
 
 --
