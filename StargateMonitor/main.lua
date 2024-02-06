@@ -88,7 +88,9 @@ function dialingSignal.reset()
     dialingSignal._isDialing = false
 
     gateInterface.disconnectStargate()
-    gateInterface.closeChevron()
+    if gateInterface.closeChevron ~= nil then
+        gateInterface.closeChevron()
+    end
     if gateInterface.getChevronsEngaged() > 0 then
         gateInterface.disconnectStargate()
         Status.reset(0)
