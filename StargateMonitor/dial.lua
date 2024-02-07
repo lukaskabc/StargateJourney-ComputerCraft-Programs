@@ -98,6 +98,21 @@ local function printCartouche()
     end
 end
 
+local function getClickedId(y)
+    local id = 1
+    local yy = listStartY
+    while yy < y and id < #CARTOUCHE do
+        id = id + 1
+        yy = yy + 1 + spacing
+    end
+
+    if yy ~= y then
+        return 0
+    end
+
+    return id
+end
+
 local function run()
     while true do
         local event, side, x, y = os.pullEvent("monitor_touch")
@@ -106,10 +121,9 @@ local function run()
             goto continue
         end
 
-        local id = math.floor((y - startY) / (spacing + 2))
-        local wasBlank = y % (spacing + 1) == 1
+        local id = getClickedId(y)
 
-        if y < listStartY or id > #CARTOUCHE or id < 1 or wasBlank then
+        if id < 1 or id > #CARTOUCHE then
             selected = 0
             -- yes printing the single selected line would be better
             printCartouche()
