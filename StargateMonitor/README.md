@@ -1,7 +1,7 @@
 # Stargate monitor
 *Created by [lukaskabc](https://lukaskabc.tk)*
 
-Written with Stargate Journey 0.6.17 and CC:Tweaked 1.109.3 on 1.20.1
+Written with Stargate Journey 0.6.17 and CC:Tweaked 1.109.3 on 1.20.1  
 
 ![monitor image](../imgs/StargateMonitor.png)
 
@@ -50,3 +50,9 @@ By default connection to monitor is expected on left side (stargate interface ma
 This connection can be customized in file `main.lua`
 
 Cartouche can be customized in fiule `1_cartouche.lua`
+
+## Older versions
+
+Older versions are not supported, sorry.  
+If you want to change the code, you can start by eliminating `goto` and `::continue::`  
+In case you do so, your changes are welcome.  
