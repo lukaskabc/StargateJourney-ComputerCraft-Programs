@@ -22,6 +22,7 @@ local function direct_dial(interface, address, fastDial, dialingSignal)
         if not fastDial then
             sleep(1)
             while(interface.getChevronsEngaged() < i) do
+                if dialingSignal and not dialingSignal.isDialing() then return end
                 coroutine.yield()
             end
         end

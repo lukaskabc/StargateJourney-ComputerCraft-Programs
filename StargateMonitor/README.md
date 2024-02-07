@@ -1,6 +1,8 @@
 # Stargate monitor
 *Created by [lukaskabc](https://lukaskabc.tk)*
 
+Written with Stargate Journey 0.6.17 and CC:Tweaked 1.109.3 on 1.20.1
+
 ![monitor image](../imgs/StargateMonitor.png)
 
  - Setup requires advanced computer and advanced monitor with size 2x3
