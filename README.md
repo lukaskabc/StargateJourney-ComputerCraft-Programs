@@ -24,6 +24,7 @@
  - Connection history
 
  ![Stargate Monitor image](./imgs/StargateMonitor.png)
+ ![Stargate Monitor terminal image](./imgs/StargateMonitorTerminal.png)
 
 ## [Window drawer test](./WIndow%20drawer%20test.lua)
 *Created by Povstalec*
