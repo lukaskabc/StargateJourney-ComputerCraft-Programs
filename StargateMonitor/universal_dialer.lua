@@ -17,6 +17,8 @@ local function direct_dial(interface, address, fastDial, dialingSignal)
 
         if dialingSignal and not dialingSignal.isDialing() then return end
 
+        write("Encoding symbol "..symbol.."...")
+
         interface.engageSymbol(symbol)
 
         if not fastDial then
@@ -26,6 +28,7 @@ local function direct_dial(interface, address, fastDial, dialingSignal)
                 coroutine.yield()
             end
         end
+        print("ok")
     end
 end
 
@@ -129,7 +132,10 @@ local function addOrigin(address)
     for i, symbol in pairs(address) do
         addr[#addr+1] = symbol
     end
-    addr[#addr+1] = 0
+
+    if addr[#addr] ~= 0 then
+        addr[#addr+1] = 0
+    end
     
     return addr
 end
@@ -142,6 +148,7 @@ local function dial(interface, address, fastDial, dialingSignal)
     interface.disconnectStargate()
 
     if #address == 0 then
+        print("empty address")
         return
     end
 

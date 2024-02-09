@@ -452,6 +452,11 @@ function Feedback:print()
     monitor.write(strings.ensure_width("", monitorSize[1] + 2))
 
     if self.code < 0 then
+        print("")
+        printError(self.description)
+    end
+
+    if self.code < 0 then
         monitor.setTextColor(colors.red)
     else
         monitor.setTextColor(colors.lightGray)
@@ -587,7 +592,6 @@ local function process_event(eventData)
             -- https://github.com/Povstalec/StargateJourney/commit/3facdd44295c7e2e0bca2664d404cda091758946#diff-54e401b9abecaa0bedc4dd1c3ba36f9bacdab5004228584d6a7f3d1db7ebb63fR293
             event_chevronEncoded(eventData[2], eventData[4], eventData[5])
         elseif #eventData <= 4 then
-            print("using old params")
             event_chevronEncoded(table.unpack(eventData, 2))
         end
         

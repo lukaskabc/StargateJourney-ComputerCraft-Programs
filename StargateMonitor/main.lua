@@ -53,6 +53,9 @@ local coordsForStatus = { offset = offset, statusTextPos = statusTextPos, feedba
 local later_exec = require("./utils")[4]
 local run_later = require("./utils")[3]
 
+-- DialGUI changes term.current() so include it as first
+local DialGUI = require("./dial_window")
+
 local Menu = require("./menu")
 local Status = require("./status")
 local Dial = require("./dial")
@@ -110,7 +113,8 @@ end
 Status.init(function() return Menu.isPage(1) end, monitor, gateInterface, coordsForStatus, dialingAddressHolder, dialingSignal, History)
 Dial.init(function() return Menu.isPage(2) end, monitor, gateInterface, {offset = offset}, Menu.navigate, allowFastDial, dialingAddressHolder, dialingSignal)
 History.init(function() return Menu.isPage(3) end, monitor, gateInterface, {offset = offset}, Menu.navigate, allowFastDial, dialingAddressHolder, dialingSignal)
+DialGUI.init(gateInterface, allowFastDial, dialingAddressHolder, dialingSignal)
 Menu.init({Status.page, Dial.page, History.page}, 1, monitor, menuButtons)
 
 
-parallel.waitForAll(later_exec, Status.run, Dial.run, History.run, Menu.run)
+parallel.waitForAll(later_exec, Status.run, Dial.run, History.run, Menu.run, DialGUI.run)
