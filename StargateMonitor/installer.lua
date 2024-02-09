@@ -12,15 +12,16 @@ print("")
 
 
 local files = {
-    {name = "1_cartouche.lua",      pastebin = "Bf4z6jFV"},
-    {name = "dial.lua",             pastebin = "xdSLhDzR"},
-    {name = "history.lua",          pastebin = "J7wuG3Zy"},
-    {name = "chevrons.lua",         pastebin = "qfgpdbGb"},
-    {name = "main.lua",             pastebin = "X8YYkSG2"},
-    {name = "menu.lua",             pastebin = "B6VkyCDt"},
-    {name = "status.lua",           pastebin = "WZiv6VV2"},
-    {name = "universal_dialer.lua", pastebin = "yRMjjjn3"},
-    {name = "utils.lua",            pastebin = "Bf4z6jFV"},
+    {name = "1_cartouche.lua"},
+    {name = "dial.lua"},
+    {name = "history.lua"},
+    {name = "chevrons.lua"},
+    {name = "main.lua"},
+    {name = "menu.lua"},
+    {name = "status.lua"},
+    {name = "universal_dialer.lua"},
+    {name = "utils.lua"},
+    {name = "dial_window.lua"},
 
 
     -- FILES with content
