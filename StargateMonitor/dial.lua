@@ -23,9 +23,9 @@ local dialingAddressHolder
 local dialingSignal
  
 local function validateCartouche()
-    for _, value in ipairs(CARTOUCHE) do
+    for _, value in ipairs(CARTOUCHE) do (function()
         if value.name == " " and #value.address == 0 then
-            goto continue
+            return -- actually continue
         end
 
         value.name = string.gsub(value.name, "%s+$", "")
@@ -44,9 +44,8 @@ local function validateCartouche()
         if value.name == "" then
             value.name = "-"..table.concat(value.address, "-") .. "-"
         end
-
-        ::continue::
-    end
+        
+    end)() end
 end
 
 local function init(_canPrint, _monitor, _gateInterface, _coords, _navigate, _fastDial, _dialingAddressHolder, _dialingSignal)
@@ -114,11 +113,11 @@ local function getClickedId(y)
 end
 
 local function run()
-    while true do
+    while true do (function()
         local event, side, x, y = os.pullEvent("monitor_touch")
 
         if not canPrint() then
-            goto continue
+            return -- continue
         end
 
         local id = getClickedId(y)
@@ -127,7 +126,7 @@ local function run()
             selected = 0
             -- yes printing the single selected line would be better
             printCartouche()
-            goto continue
+            return -- continue
         end
 
         if selected ~= id then
@@ -146,8 +145,7 @@ local function run()
             printError("Dialing sequence blocked by active connection")
         end
         
-        ::continue::
-    end
+    end)() end
 end
 
 local function pagePrint()

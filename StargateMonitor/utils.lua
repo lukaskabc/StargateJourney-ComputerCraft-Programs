@@ -39,10 +39,10 @@ end
 -- this should run in parallel 
 -- takes tasks from delayed and executes them if time exceeded
 local function later_exec()
-    while true do
+    while true do (function()
         os.pullEvent("timer")
         if #delayed == 0 then
-            goto continue
+            return -- continue
         end
         local copy = delayed
         delayed = {}
@@ -55,8 +55,8 @@ local function later_exec()
                 table.insert(delayed, v)
             end
         end
-        ::continue::
-    end
+        
+    end)() end
 end
 
 return {wait, table_contains, run_later, later_exec}

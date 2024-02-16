@@ -79,11 +79,11 @@ end
 function Menu.run()
     Menu.print()
 
-    while true do
+    while true do (function()
         local event, side, x, y = os.pullEvent("monitor_touch")
 
         if y > Menu.buttonCoords[2] + 1 or y < Menu.buttonCoords[2] - 1 then
-            goto continue
+            return -- continue
         end
 
         for clickedPage, page in pairs(Menu.pages) do
@@ -95,8 +95,7 @@ function Menu.run()
             end
         end
 
-        ::continue::
-    end
+    end)() end
 end
 
 function Menu.navigate(pageNum)

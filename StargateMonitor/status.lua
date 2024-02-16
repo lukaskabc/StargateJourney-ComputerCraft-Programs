@@ -342,10 +342,9 @@ function GateMonitor.engageChevron(chevronID)
     end
 
     GateMonitor.activateChevron(chevronID, chevronBlinkColor)
-    print("chevron rise", chevronID)
+
     run_later(0.5, function()
         GateMonitor.activateChevron(chevronID, activeChevronColor)
-        print("chevron low", chevronID)
     end)
 end
 
