@@ -10,7 +10,7 @@
 -- fastDial: boolean (true is not mutch compatible with status - it may get really fast)
 -- dialingSignal: defined in main.lua for canceling dialing and stuff like that
 
-local wait, table_contains = table.unpack(require("./utils"))
+local wait, table_contains = table.unpack(require("utils"))
 
 local function direct_dial(interface, address, fastDial, dialingSignal)
     for i, symbol in pairs(address) do

@@ -15,7 +15,7 @@
 -- should work with any compatible pair of interface and stargate
 -- 
 
-local monitor = peripheral.wrap("left")
+local monitor = peripheral.find("monitor")
 local gateInterface = peripheral.find("basic_interface") or peripheral.find("crystal_interface") or peripheral.find("advanced_crystal_interface")
 
 -- I recommend to do not enable this
@@ -50,16 +50,16 @@ local menuButtons = {2, offset[2] + 21 + 12}
 local coordsForStatus = { offset = offset, statusTextPos = statusTextPos, feedbackTextPos = feedbackTextPos, addressTextPos = addressTextPos}
 
 -- MODULES / PAGES
-local later_exec = require("./utils")[4]
-local run_later = require("./utils")[3]
+local later_exec = require("utils")[4]
+local run_later = require("utils")[3]
 
 -- DialGUI changes term.current() so include it as first
-local DialGUI = require("./dial_window")
+local DialGUI = require("dial_window")
 
-local Menu = require("./menu")
-local Status = require("./status")
-local Dial = require("./dial")
-local History = require("./history")
+local Menu = require("menu")
+local Status = require("status")
+local Dial = require("dial")
+local History = require("history")
 
 local dialingSignal = {_canDial = true, _isDialing = false}
 function dialingSignal.canDial()

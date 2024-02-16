@@ -4,8 +4,8 @@
 --
 -- Dial page (displays and handles cratouche)
 
-local CARTOUCHE = require("./1_cartouche") 
-local universal_dial = require("./universal_dialer")
+local CARTOUCHE = require("1_cartouche") 
+local universal_dial = require("universal_dialer")
 
 -- binded via init function
 local canPrint

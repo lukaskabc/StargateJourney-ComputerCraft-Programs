@@ -6,10 +6,10 @@
 -- handles saving (loading) history to (from) FILENAME
 -- 
 
-local universal_dial = require("./universal_dialer")
+local universal_dial = require("universal_dialer")
 local HISTORY_LENGTH = 10
-local FILENAME = "./history.data"
-local CARTOUCHE = require("./1_cartouche") 
+local FILENAME = "/" .. shell.dir() .. "/history.data"
+local CARTOUCHE = require("1_cartouche") 
 
 local pretty = require("cc.pretty").pretty_print
 

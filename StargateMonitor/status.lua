@@ -6,7 +6,7 @@
 -- handles events from gate and holds some status information
 
 local strings = require("cc.strings")
-local wait, table_contains, run_later = table.unpack(require("./utils"))
+local wait, table_contains, run_later = table.unpack(require("utils"))
 
 local activeChevronColor = colors.red
 local chevronBlinkColor = colors.yellow
@@ -306,7 +306,7 @@ function GateMonitor.print()
         fileName = "stargate.nfp"
     end
 
-    local gateImg = paintutils.loadImage(fileName)
+    local gateImg = paintutils.loadImage(shell.resolve(fileName))
     local terminal = term.current()
     term.redirect(monitor)
     paintutils.drawImage(gateImg, coords.offset[1], coords.offset[2])
@@ -342,8 +342,10 @@ function GateMonitor.engageChevron(chevronID)
     end
 
     GateMonitor.activateChevron(chevronID, chevronBlinkColor)
+    print("chevron rise", chevronID)
     run_later(0.5, function()
         GateMonitor.activateChevron(chevronID, activeChevronColor)
+        print("chevron low", chevronID)
     end)
 end
 

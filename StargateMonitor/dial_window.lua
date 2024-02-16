@@ -1,8 +1,8 @@
 local mainTerminal = term.current()
 local strings = require("cc.strings")
-local universal_dial = require("./universal_dialer")
+local universal_dial = require("universal_dialer")
 
-local wait, table_contains = table.unpack(require("./utils"))
+local wait, table_contains = table.unpack(require("utils"))
 
 local MAIN_TERM_SIZE = {mainTerminal.getSize()}
 
@@ -19,6 +19,8 @@ local TEXT_COLOR = colors.black
 local SYMBOL_BACKGROUND = colors.white
 local SYMBOL_TEXT = colors.blue
 local SYMBOL_INVALID_TEXT = colors.red
+
+mainTerminal.clear()
 
 local logWindow = window.create(mainTerminal, 1, 1, TERMINAL_WIDTH, LOG_WINDOW_HEIGHT, true)
 local dialWindow = window.create(mainTerminal, 1, LOG_WINDOW_HEIGHT + 2, TERMINAL_WIDTH, DIAL_WINDOW_HEIGHT, true)
