@@ -47,7 +47,5 @@ All files from this folder are required except `installer.lua` and `README.md`
 
 # Setup
 Program requires monitor 2 block width and 3 blocks height and any stargate interface.
-By default connection to monitor is expected on left side (stargate interface may be connected via wired modem).
-This connection can be customized in file `main.lua`
 
 Cartouche can be customized in fiule `1_cartouche.lua`

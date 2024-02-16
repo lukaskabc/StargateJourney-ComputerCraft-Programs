@@ -35,6 +35,8 @@ if gateInterface == nil then
     error("No gate interface found")
 end
 
+monitor.setTextScale(0.5)
+
 -- coord stuff, dont touch
 local offset = {5, 2}
 
