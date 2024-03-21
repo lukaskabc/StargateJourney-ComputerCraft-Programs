@@ -1,22 +1,3 @@
--- ====================
---        UTILS
--- ====================
-
--- this is probably unsused :D
-local function wait ( time )
-    local targetTime = os.epoch() + (time * 10000)
-    local timer = os.startTimer(time)
-
-    while true do
-        os.pullEvent("timer")
-        
-        if targetTime <= os.epoch() then
-            os.cancelTimer(timer)
-            break
-        end
-    end
-end
-
 -- checks whether table contains the value
 local function table_contains(table, value)
     for _, v in pairs(table) do
@@ -28,35 +9,40 @@ local function table_contains(table, value)
     return false
 end
 
-local delayed = {}
-
--- queues task for execution
-local function run_later( delay, func )
-    local targetTime = os.epoch() + (delay * 10000)
-    table.insert(delayed, { targetTime = targetTime, func = func, timer = os.startTimer(delay)})
+-- returns true if specified path exists and is file, false otherwise
+local function fileExists(filename)
+    return fs.exists(filename) and not fs.isDir(filename)
 end
 
--- this should run in parallel 
--- takes tasks from delayed and executes them if time exceeded
-local function later_exec()
-    while true do (function()
-        os.pullEvent("timer")
-        if #delayed == 0 then
-            return -- continue
-        end
-        local copy = delayed
-        delayed = {}
+-- loads file as string, if file does not exist returns empty string
+local function loadFile(filename)
+    local lines = {}
 
-        for _, v in pairs(copy) do
-            if v.targetTime <= os.epoch() then
-                os.cancelTimer(v.timer)
-                v.func()
-            else
-                table.insert(delayed, v)
-            end
-        end
-        
-    end)() end
+    if not fileExists(filename) then
+        return ""
+    end
+
+    local file = io.lines(filename)
+
+    for line in file do
+        table.insert(lines, line)
+    end
+
+    return table.concat(lines, "\n")
 end
 
-return {wait, table_contains, run_later, later_exec}
+-- saves text to file (replacing file contents)
+local function saveFile(filename, text)
+    local f = io.open(filename, "w")
+    f:write(text)
+    f:flush()
+    f:close()
+end
+
+
+return {
+    table_contains = table_contains,
+    fileExists = fileExists,
+    loadFile = loadFile,
+    saveFile = saveFile
+}
