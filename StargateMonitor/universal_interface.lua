@@ -1,6 +1,6 @@
-local STARGATE_NOT_CONNECTED_ERROR = {message = "Interface is not connected to the stargate!"}
+local STARGATE_NOT_CONNECTED_ERROR = {message = "Interface is not connected to a stargate!"}
 local INTERFACE_NOT_CONNECTED_ERROR = {message = "Interface not found!"}
-local INSUFFICIENT_INTERFACE = {message = "Better interface required for this gate type!"}
+local INSUFFICIENT_INTERFACE = {message = "Crystal interface is required for this gate type!"}
 local FEEDBACK = require("stargate_feedbacks")
 local try = require("try")
 -- dialing milkyway stargate will use three step symbol encoding (open, encode, close)
@@ -183,6 +183,7 @@ local function direct_symbol_engage(i, address, quick_dial)
     while(universal_interface.getChevronsEngaged() < i) do
         if not universal_interface.dial_in_progress or quick_dial then break end
         sleep(0)
+        universal_interface.checkInterfaceConnected()
     end
 
     return result
@@ -251,11 +252,12 @@ local function rotational_symbol_engage(i, address, quick_dial)
 end
 
 local function dial(address, engage, quick_dial)
+    local isPegasus = interface.getStargateType() == "sgjourney:pegasus_stargate"
     for i, symbol in pairs(address) do
         if not universal_interface.dial_in_progress then break end
 
-        universal_interface.checkInterfaceConnected()
         os.queueEvent("jasc_engaging_symbol", i, symbol)
+        universal_interface.checkInterfaceConnected()
         local feedback = engage(i, address, quick_dial)
 
         if feedback < 0 then
@@ -263,11 +265,12 @@ local function dial(address, engage, quick_dial)
             return feedback
         end
 
-        if not quick_dial and universal_interface.dial_in_progress then
+        os.queueEvent("jasc_engaging_symbol", i, symbol, universal_interface.dial_in_progress)
+
+        -- pegasus is exluded due to its animation
+        if not quick_dial and universal_interface.dial_in_progress and not isPegasus then
             os.sleep(0.5)
         end
-
-        os.queueEvent("jasc_engaging_symbol", i, symbol, universal_interface.dial_in_progress)
     end
 end
 
@@ -283,12 +286,12 @@ function universal_interface.dial(address, quick_dial, direct_engage)
     universal_interface.dial_in_progress = true
 
     -- if quick dial not specified, use global setting
-    if not quick_dial then
+    if quick_dial == nil then
         quick_dial = universal_interface.quick_dial
     end
 
     -- if direct engage not specified, use global setting
-    if not direct_engage then
+    if direct_engage == nil then
         direct_engage = universal_interface.direct_engage
     end
 
@@ -317,7 +320,7 @@ function universal_interface.dial(address, quick_dial, direct_engage)
 
     -- choose a function for engaging symbols
     local engage = nil
-    if direct_engage then
+    if direct_engage and interface.engageSymbol then
         engage = direct_symbol_engage
     else
         engage = rotational_symbol_engage

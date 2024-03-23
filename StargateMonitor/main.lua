@@ -8,7 +8,7 @@ local modules, monitor_config = table.unpack(require("modules_loader"))
 parallel.waitForAny(function()
     EXCEPTION = {"exception"}
     try(function()
-        print(universal_interface.dial({27, 29, 10, 19, 15, 30, 9, 21}))
+        print(universal_interface.dial({27, 29, 10, 19, 15, 30, 9, 21}, true, true))
         print("ok")
         --error(EXCEPTION)
     end, function(exception)
