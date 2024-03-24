@@ -12,7 +12,7 @@ require("constants")
 
 
 --[[
-    Fires event jasc_engaging_symbol with parameters:
+    Fires event yasc_engaging_symbol with parameters:
     - symbol index in address
     - symbol
     - None - pending, true - success, false - failed (aborted)
@@ -256,16 +256,16 @@ local function dial(address, engage, quick_dial)
     for i, symbol in pairs(address) do
         if not universal_interface.dial_in_progress then break end
 
-        os.queueEvent("jasc_engaging_symbol", i, symbol)
+        os.queueEvent("yasc_engaging_symbol", i, symbol)
         universal_interface.checkInterfaceConnected()
         local feedback = engage(i, address, quick_dial)
 
         if feedback < 0 then
-            os.queueEvent("jasc_engaging_symbol", i, symbol, false)
+            os.queueEvent("yasc_engaging_symbol", i, symbol, false)
             return feedback
         end
 
-        os.queueEvent("jasc_engaging_symbol", i, symbol, universal_interface.dial_in_progress)
+        os.queueEvent("yasc_engaging_symbol", i, symbol, universal_interface.dial_in_progress)
 
         -- pegasus is exluded due to its animation
         if not quick_dial and universal_interface.dial_in_progress and not isPegasus then

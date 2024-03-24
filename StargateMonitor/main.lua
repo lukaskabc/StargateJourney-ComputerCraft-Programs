@@ -1,22 +1,55 @@
+--
+--      Y.A.S.C. Yet Another Stargate Computer
+--             Hallowed is Povstalec !
+--
+--             Created by lukaskabc
+--
+--
+-- https://github.com/lukaskabc/StargateJourney-ComputerCraft-Programs/tree/main/StargateMonitor
+--
+
 require("constants")
+require("utils")
 local try = require("try")
-local pretty = (require "cc.pretty").pretty_print
 local universal_interface = require("universal_interface")
+universal_interface.checkInterfaceConnected()
 
-local modules, monitor_config = table.unpack(require("modules_loader"))
+local modules, windows = table.unpack(require("modules_loader"))
+modules["universal_interface"] = universal_interface
 
-parallel.waitForAny(function()
-    EXCEPTION = {"exception"}
-    try(function()
-        print(universal_interface.dial({27, 29, 10, 19, 15, 30, 9, 21}, true, true))
-        print("ok")
-        --error(EXCEPTION)
-    end, function(exception)
-        print("Error during initialization: ")
-        pretty(exception)
-    end)
-end, function()
-    while true do
-        print(os.pullEvent())
+local parallelMethods = {}
+
+-- verify advanced computer
+if not term.isColor() then
+    printError("This program requires an advanced computer!")
+    return 1
+end
+
+-- Initialize all modules
+for module_name, module in pairs(modules) do
+    if module.init then
+        print("Initializing module", module_name, "...")
+        local r = module.init(modules, windows)
+        if r ~= nil and r ~= 0 then
+            print()
+            printError("Failed to initialize module", module_name, "("..r..")")
+            return 1
+        end
     end
-end)
+end
+
+-- Collect all run methods from modules to be run in parallel
+for module_name, module in pairs(modules) do
+    if module.run then
+        table.insert(parallelMethods, function()
+            try(module.run, function(err)
+                printError(err)
+                print()
+                printError("Script experienced an unexpected error in module", module_name)
+            end)
+        end)
+    end
+end
+
+
+parallel.waitForAny(table.unpack(parallelMethods))

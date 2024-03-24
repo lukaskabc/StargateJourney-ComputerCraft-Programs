@@ -1,1 +1,13 @@
-{}
+[
+    {
+        "monitor": "left",
+        "textScale": 0.5,
+        "windows": [
+            {
+                "module": "status",
+                "x": 4,
+                "y": 2
+            }
+        ]
+    }
+]

@@ -1,11 +1,7 @@
-local utils = require("utils")
-local modules = {}
+local DEBUG = false
 
-local function recommendReinstall()
-    printError("Did you installed program correctly?")
-    printError("Please reinstall the program with installer:")
-    printError("pastebin run hXCYLwmF")
-end
+local try = require("try")
+local modules = {}
 
 -- now lets load all modules
 local abs_modules_folder = shell.resolve(MODULES_FOLDER)
@@ -32,14 +28,12 @@ for _,file in pairs(fs.list(abs_modules_folder)) do repeat
         break -- continue
     end
 
-    if type(module.init) ~= "function" then
+    if type(module.init) ~= "function" and DEBUG then
         printError("Module", module_name, "does not contain init function! Skipping...")
-        break -- continue
     end
 
-    if type(module.run) ~= "function" then
+    if type(module.run) ~= "function" and DEBUG then
         printError("Module", module_name ,"does not contain run function! Skipping...")
-        break -- continue
     end
 
     modules[module_name] = module
@@ -60,15 +54,74 @@ print("Loaded", modules_count, "modules")
 -- ==================================================================================================================
 
 -- load monitor configuration
-if not utils.fileExists(MONITOR_CONFIG_FILE) then
+if not fileExists(MONITOR_CONFIG_FILE) then
     printError("Monitor configuration not found!")
     recommendReinstall()
     return 1
 end
 
-local monitor_config = utils.loadFile(MONITOR_CONFIG_FILE)
-monitor_config = textutils.unserialiseJSON(monitor_config)
+local monitor_config = loadFile(MONITOR_CONFIG_FILE)
+try(function()
+    monitor_config = textutils.unserialiseJSON(monitor_config)
+end, function(err)
+    monitor_config = nil
+    printError(err)
+    print()
+end)
+
+if monitor_config == nil then
+    printError("Failed to load monitor configuration!")
+    recommendReinstall()
+    return 1
+end
+
+-- now wrap all monitors
+local windows = {}
+for i, record in pairs(monitor_config) do
+    local monitor_name = record.monitor
+    local type = record.type
+    local monitor = peripheral.wrap(monitor_name)
+
+    if monitor == nil then
+        printError("Monitor", monitor_name, "not found!")
+        printError("This monitor was type of", type)
+        printError("You probably disconnected that monitor from computer, you can either update config/monitor_config.json with new monitor name or reinstall the script.")
+        recommendReinstall()
+        return 1
+    end
+
+    if not monitor.isColor() and peripheral.getType(monitor) ~= "Create_DisplayLink" then
+        printError("Monitor with name", peripheral.getName(monitor), "is not an advanced monitor!")
+        recommendReinstall()
+        return 1
+    end
+
+    monitor.clear()
+    if record.textScale ~= nil then
+        monitor.setTextScale(record.textScale)
+    end
+
+    if record.windows == nil then
+        printError("Invalid monitor configuration for monitor", monitor_name, "no window configuration!")
+        recommendReinstall()
+        return 1
+    end
+
+    for j, win in pairs(record.windows) do
+        if win.module == nil then
+            printError("Invalid monitor configuration for monitor", monitor_name, "no module name for window", j)
+            recommendReinstall()
+            return 1
+        end
+
+        local w = window.create(monitor, win.x, win.y, 5, 5, true)
+        w.clear()
+        w.redraw()
+
+        w.module = win.module
+        table.insert(windows, w)
+    end
+end
 
 
-
-return {modules, monitor_config}
+return {modules, windows}
