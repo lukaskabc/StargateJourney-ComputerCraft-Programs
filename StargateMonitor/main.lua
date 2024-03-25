@@ -10,6 +10,7 @@
 
 require("constants")
 require("utils")
+require("run_later")
 local try = require("try")
 local universal_interface = require("universal_interface")
 universal_interface.checkInterfaceConnected()
@@ -17,7 +18,7 @@ universal_interface.checkInterfaceConnected()
 local modules, windows = table.unpack(require("modules_loader"))
 modules["universal_interface"] = universal_interface
 
-local parallelMethods = {}
+local parallelMethods = {later_exec}
 
 -- verify advanced computer
 if not term.isColor() then

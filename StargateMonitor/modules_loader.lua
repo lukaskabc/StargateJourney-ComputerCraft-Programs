@@ -2,6 +2,17 @@ local DEBUG = false
 
 local try = require("try")
 local modules = {}
+local modules_config = {}
+
+
+if fileExists(MODULES_CONFIG_FILE) then
+    modules_config = loadFile(MODULES_CONFIG_FILE)
+    try(function()
+        modules_config = textutils.unserialiseJSON(modules_config)
+    end, function(err)
+        modules_config = {}
+    end)
+end
 
 -- now lets load all modules
 local abs_modules_folder = shell.resolve(MODULES_FOLDER)
@@ -39,6 +50,19 @@ for _,file in pairs(fs.list(abs_modules_folder)) do repeat
     modules[module_name] = module
     modules_count = modules_count + 1
     print("Loaded module", module_name)
+
+    -- now load module configuration
+    if modules_config[module_name] == nil then
+        break -- continue
+    end
+
+    local config = modules_config[module_name]
+    for option_name, option_obj in pairs(module.configuration) do
+        if config[option_name] ~= nil then
+            option_obj.value = config[option_name]
+            print("mapping config option", option_name, "to value", config[option_name])
+        end
+    end
     
 until true
 end

@@ -3,23 +3,31 @@ local activeChevronColor = colors.red
 local chevronBlinkColor = colors.yellow
 local gateColor = colors.gray
 local gateBackgroundColor = colors.black
+local ENABLE_IDLE_BLINK
+local ENABLE_ACTIVE_BLINK
 local CHEVRONS_ORDER = {1, 2, 3, 6, 7, 8, 4, 5, 9}
 local CHEVRONS_COORDS = require("assets.chevrons")
-
-local pretty = (require "cc.pretty").pretty_print
+-- used for blink
+local GATE_CENTER = {15, 11}
 
 -- window for gate status
 local WIN = nil
 
-
-local Status = {}
+local Status = {
+    configuration = {
+        enable_idle_blink = {type = "boolean", value = true, description = "Enable blinking when gate is idle"},
+        enable_active_blink = {type = "boolean", value = true, description = "Enable blinking when gate is connected"},
+    }
+}
 local encodedChevrons = {}
 
+-- module render should be repeatable callable
+-- and should render the screen (used for previews)
 function Status.init(modules, windows)
     universal_interface = modules["universal_interface"]
 
     for i, win in pairs(windows) do
-        if win.module == "status" then
+        if win.module == "gate_vizualization" then
             WIN = win
             break
         end
@@ -35,40 +43,76 @@ function Status.init(modules, windows)
     local x, y = WIN.getPosition()
     WIN.reposition(x, y, 30, 21)
 
-    Status.renderGate()
+    ENABLE_IDLE_BLINK = Status.configuration.enable_idle_blink.value
+    ENABLE_ACTIVE_BLINK = Status.configuration.enable_active_blink.value
 
+    Status.renderGate()
+    Status.renderActiveChevrons()
     return 0
 end
 
 function Status.run()
-    -- os.shutdown()
+    if ENABLE_ACTIVE_BLINK or ENABLE_IDLE_BLINK then
+        parallel.waitForAny(Status.blink, Status.eventLoop)
+    else
+        Status.eventLoop()
+    end
+end
+
+function Status.blink()
+    local blink = true
+    while true do
+        local color = gateBackgroundColor
+
+        if universal_interface.isStargateConnected() then
+            color = colors.blue
+        end
+
+        if blink then
+            if ENABLE_IDLE_BLINK then
+                color = colors.blue
+            end
+            if universal_interface.isStargateConnected() and ENABLE_ACTIVE_BLINK then
+                if universal_interface.isStargateDialingOut() then
+                    color = colors.green
+                else
+                    color = colors.red
+                end
+            end
+        end
+
+        blink = not blink
+
+        WIN.setCursorPos(table.unpack(GATE_CENTER))
+        WIN.setBackgroundColor(color)
+        WIN.write(" ")
+
+        sleep(1)
+    end
+end
+
+function Status.eventLoop()
     while true do
         local ev = {os.pullEvent()}
         if ev[1] == "stargate_chevron_engaged" then
-            print(table.unpack(ev))
             Status.event_chevron_engaged(table.unpack(ev, 2))
+        elseif ev[1] == "stargate_incoming_wormhole" or ev[1] == "stargate_outgoing_wormhole" then
+            Status.renderGate()
+            Status.renderActiveChevrons()
         elseif ev[1] == "stargate_reset" or ev[1] == "stargate_disconnect" then
-            encodedChevrons = {}
-            print("stargate reset")
-        else
-            print(table.unpack(ev))
+            Status.event_reset()
         end
     end
 end
 
+function Status.event_reset()
+    encodedChevrons = {}
+    Status.renderGate(false)
+end
+
 function Status.event_chevron_engaged(chevronsEngaged, chevronID, isIncomming, symbol)
     encodedChevrons[tostring(chevronID)] = chevronID
-
-    Status.renderActiveChevron(chevronID, activeChevronColor)
-
-    local chevrons = {}
-    for s, i in pairs(encodedChevrons) do
-        table.insert(chevrons, i)
-    end
-    -- table.sort(chevrons)
-    -- print(table.unpack(chevrons))
-
-    -- Status.renderGate()
+    Status.blinkChevron(chevronID)
 end
 
 
@@ -201,11 +245,14 @@ function Status.renderGateDetails()
 end
 ]]
 
-function Status.renderGate()
+function Status.renderGate(isOpen)
     local fileName
-    local chevronCount = universal_interface.getChevronsEngaged()
 
-    if universal_interface.isStargateConnected() then
+    if isOpen == nil then
+        isOpen = universal_interface.isStargateConnected()
+    end
+
+    if isOpen then
         fileName = "wormhole.nfp"
         if not table_contains(encodedChevrons, 9) then
             table.insert(encodedChevrons, 9)
@@ -220,6 +267,10 @@ function Status.renderGate()
     paintutils.drawImage(gameImage, 1, 1)
     -- Status.renderGateDetails()
     term.redirect(terminal)
+end
+
+function Status.renderActiveChevrons()
+    local chevronCount = universal_interface.getChevronsEngaged()
 
     if chevronCount > #encodedChevrons then
         encodedChevrons = {table.unpack(CHEVRONS_ORDER, 1, chevronCount)}
@@ -239,9 +290,15 @@ function Status.renderActiveChevron(chevronID, color)
     end
 end
 
-
+function Status.blinkChevron(chevronID)
+    Status.renderActiveChevron(chevronID, chevronBlinkColor)
+    run_later(0.5, function()
+        Status.renderActiveChevron(chevronID, activeChevronColor)
+    end)
+end
 
 return {
     init = Status.init,
-    run = Status.run
+    run = Status.run,
+    configuration = Status.configuration
 }

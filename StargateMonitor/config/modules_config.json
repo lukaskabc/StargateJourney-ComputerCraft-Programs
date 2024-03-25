@@ -1,0 +1,6 @@
+{
+    "gate_visualization": {
+        "enable_idle_blink": false,
+        "enable_active_blink": true
+    }
+}
