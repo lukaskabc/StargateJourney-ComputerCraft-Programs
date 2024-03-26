@@ -15,5 +15,8 @@
 
         "blink_interval": 0.5,
         "enable_touch_reset": true
+    },
+    "last_feedback": {
+        "line_width": 36
     }
 }

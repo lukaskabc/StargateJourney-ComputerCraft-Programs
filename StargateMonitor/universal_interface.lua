@@ -130,7 +130,23 @@ end
 
 function universal_interface.getRecentFeedback()
     universal_interface.checkInterfaceConnected()
-    return interface.getRecentFeedback()
+    local feedback, message = interface.getRecentFeedback()
+    
+    if message ~= nil then
+        local msg = string.gsub(message, "\.", "_")
+        msg = string.upper(message)
+        if FEEDBACK[msg] ~= nil then
+            return FEEDBACK[msg].code, FEEDBACK[msg].description
+        end
+    end
+
+    for _, f in pairs(FEEDBACK) do
+        if f.code == feedback then
+            return feedback, f.description
+        end
+    end
+
+    return feedback, message
 end
 
 -- Returns the currently dialed address (for outgoing connection) or empty table {}.

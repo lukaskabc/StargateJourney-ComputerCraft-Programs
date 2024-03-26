@@ -12,6 +12,11 @@
                 "module": "status_button",
                 "x": 10,
                 "y": 27
+            },
+            {
+                "module": "last_feedback",
+                "x": 1,
+                "y": 31
             }
         ]
     }

@@ -1,11 +1,14 @@
 local Pager = {}
 
-function Pager:new(monitor, addressTable)
+function Pager:new(window, addressTable, configuration)
     local o = {}
     setmetatable(o, self)
     self.__index = self
-    o.monitor = monitor
+    o.window = window
+    o.configuration = configuration
     return o
 end
+
+
 
 return Pager

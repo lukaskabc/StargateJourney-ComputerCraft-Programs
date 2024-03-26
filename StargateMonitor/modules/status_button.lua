@@ -1,8 +1,6 @@
 local universal_interface
 local WIN = nil
 
-local pretty = require("cc.pretty").pretty_print
-
 local STATUS = {
     IDLE = "idle",
     OUTGOING_DIALING = "outgoing_dialing",
@@ -79,6 +77,7 @@ function Module.run()
                 Module.status = STATUS.OUTGOING_DIALING
             end
         elseif ev[1] == "stargate_reset" or ev[1] == "stargate_disconnected" then
+            Module.blinking = false
             Module.status = STATUS.IDLE
         elseif ev[1] == "stargate_incoming_wormhole" then
             Module.status = STATUS.INCOMING_ACTIVE
@@ -113,6 +112,8 @@ function Module.monitor_touch(id, x, y)
 
     if x >= wx and x <= wx + width and y >= wy and y <= wy + height then
         universal_interface.reset()
+        Module.updateState()
+        Module.renderButton()
     end
 end
 
@@ -158,7 +159,7 @@ function Module.renderButton(invert_colors)
     term.redirect(terminal)
 
     local y = math.ceil(height / 2)
-    local x = math.ceil(width / 2) - math.floor(string.len(text) / 2)
+    local x = math.floor((width - string.len(text)) / 2) + 1
     
     WIN.setBackgroundColor(colors[color])
     WIN.setTextColor(colors[textColor])
@@ -166,4 +167,8 @@ function Module.renderButton(invert_colors)
     WIN.write(text)
 end
 
-return Module
+return {
+    init = Module.init,
+    run = Module.run,
+    configuration = Module.configuration
+}

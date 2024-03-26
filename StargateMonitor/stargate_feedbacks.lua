@@ -1,3 +1,6 @@
+-- this may get outdated with actual mod code
+-- but it is used only as fallback for basic interface
+
 return {
     NONE = {code = 0, description = "No feedback"},
     UNKNOWN_ERROR = {code = -1, description = "An unknown error occurred"},

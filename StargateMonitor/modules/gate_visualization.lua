@@ -99,7 +99,7 @@ function Status.eventLoop()
         elseif ev[1] == "stargate_incoming_wormhole" or ev[1] == "stargate_outgoing_wormhole" then
             Status.renderGate()
             Status.renderActiveChevrons()
-        elseif ev[1] == "stargate_reset" or ev[1] == "stargate_disconnect" then
+        elseif ev[1] == "stargate_reset" or ev[1] == "stargate_disconnected" then
             Status.event_reset()
         end
     end
