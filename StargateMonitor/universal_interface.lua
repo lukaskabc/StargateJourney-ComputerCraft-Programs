@@ -45,16 +45,24 @@ function universal_interface.checkInterfaceConnected()
     error(INTERFACE_NOT_CONNECTED_ERROR)
 end
 
+function universal_interface.resetStargate()
+    return universal_interface.reset()
+end
+
 -- resets the stargate
 function universal_interface.reset()
+    universal_interface.abortDial()
     universal_interface.checkInterfaceConnected()
 
-    if interface.closeChevron then
-        interface.closeChevron()
-    end
-
-    
     interface.disconnectStargate()
+
+    if interface.closeChevron then
+        -- stargate is reseted first
+        -- chevron is closed if possible
+        interface.closeChevron()
+        -- then the symbol engaged by closing chevron is cleared
+        interface.disconnectStargate()
+    end
     
     return FEEDBACK.NONE
 end
@@ -340,6 +348,7 @@ function universal_interface.dial(address, quick_dial, direct_engage)
     return result
 end
 
+-- does not resets stargate!
 function universal_interface.abortDial()
     universal_interface.dial_in_progress = false
 end

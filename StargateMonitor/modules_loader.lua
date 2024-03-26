@@ -60,7 +60,6 @@ for _,file in pairs(fs.list(abs_modules_folder)) do repeat
     for option_name, option_obj in pairs(module.configuration) do
         if config[option_name] ~= nil then
             option_obj.value = config[option_name]
-            print("mapping config option", option_name, "to value", config[option_name])
         end
     end
     
@@ -143,6 +142,7 @@ for i, record in pairs(monitor_config) do
         w.redraw()
 
         w.module = win.module
+        w.monitor = monitor
         table.insert(windows, w)
     end
 end

@@ -7,6 +7,11 @@
                 "module": "gate_vizualization",
                 "x": 4,
                 "y": 2
+            },
+            {
+                "module": "status_button",
+                "x": 10,
+                "y": 27
             }
         ]
     }

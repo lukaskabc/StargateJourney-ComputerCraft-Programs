@@ -282,6 +282,10 @@ function Status.renderActiveChevrons()
 end
 
 function Status.renderActiveChevron(chevronID, color)
+    if CHEVRONS_COORDS[chevronID] == nil then
+        return
+    end
+    
     WIN.setBackgroundColor(color)
     WIN.setTextColor(color)
     for i, coord in pairs(CHEVRONS_COORDS[chevronID]) do
@@ -293,7 +297,9 @@ end
 function Status.blinkChevron(chevronID)
     Status.renderActiveChevron(chevronID, chevronBlinkColor)
     run_later(0.5, function()
-        Status.renderActiveChevron(chevronID, activeChevronColor)
+        if table_contains(encodedChevrons, chevronID) then
+            Status.renderActiveChevron(chevronID, activeChevronColor)
+        end
     end)
 end
 
