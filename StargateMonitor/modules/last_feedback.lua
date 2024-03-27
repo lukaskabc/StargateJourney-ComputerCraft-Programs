@@ -71,8 +71,8 @@ function Module.renderFeedback()
     local x, y = 1, 1
 
     if Module.configuration.align_center.value then
-        local w, h = WIN.getSize()
-        x = math.floor(w - string.len(message)) / 2
+        local w, _ = WIN.getSize()
+        x = math.floor((w - string.len(message)) / 2)
         x = x + 1
     end
 

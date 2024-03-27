@@ -119,6 +119,9 @@ for i, record in pairs(monitor_config) do
         return 1
     end
 
+    monitor.setTextScale(0.5)
+    monitor.setBackgroundColor(colors.black)
+    monitor.setTextColor(colors.white)
     monitor.clear()
     if record.textScale ~= nil then
         monitor.setTextScale(record.textScale)
@@ -137,7 +140,28 @@ for i, record in pairs(monitor_config) do
             return 1
         end
 
-        local w = window.create(monitor, win.x, win.y, 5, 5, true)
+        local width = 5
+        local height = 5
+
+        if win.width ~= nil then
+            width = win.width
+
+            if width < 1 then
+                width, _ = monitor.getSize()
+                width = width - win.x
+            end
+        end
+
+        if win.height ~= nil then
+            height = win.height
+
+            if height < 1 then
+                _, height = monitor.getSize()
+                height = height - win.y
+            end
+        end
+
+        local w = window.create(monitor, win.x, win.y, width, height, true)
         w.clear()
         w.redraw()
 
