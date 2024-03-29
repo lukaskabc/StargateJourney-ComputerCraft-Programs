@@ -2,7 +2,6 @@ local STARGATE_NOT_CONNECTED_ERROR = {message = "Interface is not connected to a
 local INTERFACE_NOT_CONNECTED_ERROR = {message = "Interface not found!"}
 local INSUFFICIENT_INTERFACE = {message = "Crystal interface is required for this gate type!"}
 local FEEDBACK = require("stargate_feedbacks")
-local try = require("try")
 -- dialing milkyway stargate will use three step symbol encoding (open, encode, close)
 local THREE_STEP_ENCODE = true
 -- delay used between encode steps with milkyway gate
@@ -238,20 +237,20 @@ local function rotational_symbol_engage_impl(symbol, delay, direction)
     feedback = interface.openChevron()
     if feedback < 0 or not universal_interface.dial_in_progress then return feedback end
 
-    print("opened chevron", feedback)
+    -- print("opened chevron", feedback)
 
     if symbol ~= 0 and THREE_STEP_ENCODE then
         sleep(delay)
         if not universal_interface.dial_in_progress then return feedback end
         feedback = interface.encodeChevron()
-        print("encoded chevron", feedback)
+        -- print("encoded chevron", feedback)
         if feedback < 0 or not universal_interface.dial_in_progress then return feedback end
     end
 
     sleep(delay)
     if not universal_interface.dial_in_progress then return feedback end
     feedback = interface.closeChevron()
-    print("closed chevron", feedback)
+    -- print("closed chevron", feedback)
     if THREE_STEP_ENCODE and feedback == FEEDBACK.SYMBOL_IN_ADDRESS.code then
         feedback = FEEDBACK.SYMBOL_ENCODED.code
     end
@@ -282,9 +281,9 @@ local function dial(address, engage, quick_dial)
 
         os.queueEvent("yasc_engaging_symbol", i, symbol)
         universal_interface.checkInterfaceConnected()
-        local feedback = engage(i, address, quick_dial)
+        local feedback, _ = engage(i, address, quick_dial)
 
-        if feedback < 0 then
+        if type(feedback) == "number" and feedback < 0 then
             os.queueEvent("yasc_engaging_symbol", i, symbol, false)
             return feedback
         end

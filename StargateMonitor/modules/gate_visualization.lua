@@ -273,7 +273,11 @@ function Status.renderActiveChevrons()
     local chevronCount = universal_interface.getChevronsEngaged()
 
     if chevronCount > #encodedChevrons then
-        encodedChevrons = {table.unpack(CHEVRONS_ORDER, 1, chevronCount)}
+        encodedChevrons = {table.unpack(CHEVRONS_ORDER, 1, chevronCount - 1)}
+    end
+
+    if universal_interface.isStargateConnected() and not table_contains(encodedChevrons, 9) then
+        table.insert(encodedChevrons, 9)
     end
 
     for i, ch in pairs(encodedChevrons) do

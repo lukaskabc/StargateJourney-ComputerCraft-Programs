@@ -1,6 +1,5 @@
 local DEBUG = false
 
-local try = require("try")
 local modules = {}
 local modules_config = {}
 
@@ -148,7 +147,7 @@ for i, record in pairs(monitor_config) do
 
             if width < 1 then
                 width, _ = monitor.getSize()
-                width = width - win.x
+                width = width - win.x + 1
             end
         end
 
@@ -157,7 +156,7 @@ for i, record in pairs(monitor_config) do
 
             if height < 1 then
                 _, height = monitor.getSize()
-                height = height - win.y
+                height = height - win.y + 1
             end
         end
 

@@ -68,6 +68,7 @@ function Module.run()
         local oldStatus = Module.status
         if ev[1] == "stargate_chevron_engaged" then
             local incoming = true
+            print(#ev, ev[4])
             if #ev > 3 then
                 incoming = ev[4]
             end

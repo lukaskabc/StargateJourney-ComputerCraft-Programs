@@ -1,6 +1,6 @@
 -- try catch statement
 -- does not support coroutine yield !
-return function (f, catch, finally)
+function try(f, catch, finally)
     -- Hey Lua, this is so stupid
     local status, exception = pcall(f)
     if not status and catch then

@@ -39,6 +39,10 @@ function saveFile(filename, text)
     f:close()
 end
 
+function addressToString(addr)
+    return "-" .. table.concat(addr, "-") .. "-"
+end
+
 function recommendReinstall()
     printError("Did you installed program correctly?")
     printError("Please reinstall the program with installer:")

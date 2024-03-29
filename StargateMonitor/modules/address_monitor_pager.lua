@@ -1,5 +1,9 @@
 local Pager = {}
 
+local PREV_TEXT = " " .. string.char(27) .. " Prev "
+local NEXT_TEXT = " Next " .. string.char(26) .. " "
+local BUTTON_BACKGROUND = colors.lightGray
+
 -- window: window object
 -- addressTable: table with addresses to display
 -- firstLine: number of first line
@@ -12,14 +16,76 @@ function Pager:new(window, addressTable, firstLine, alignCenter, selectedChars, 
     setmetatable(o, self)
     self.__index = self
 
-    o.window = window
-    o.addressTable = addressTable
-    o.firstLine = firstLine
-    o.alignCenter = alignCenter
-    o.selectedChars = selectedChars
-    o.selectedColors = selectedColors
-    o.pageSize = pageSize
+    o.page = 0
+    o.window = window or nil
+    o.addressTable = addressTable or {}
+    o.firstLine = firstLine or 1
+    o.alignCenter = alignCenter or false
+    o.selectedChars = selectedChars or {}
+    o.selectedColors = selectedColors or {colors.white, colors.black}
+    o.pageSize = pageSize or 10
+    o.selectedID = -1
+
+    local w,h = window.getSize()
+    -- remove bottom 3 lines for buttons
+    o.pageSize = math.min(pageSize, h - firstLine - 1)
+
+    if type(selectedChars) == "string" then
+        o.selectedChars = {}
+        for i = 1,string.len(selectedChars) do
+            table.insert(o.selectedChars, string.sub(selectedChars, i, i))
+        end
+    end
+
     return o
+end
+
+function Pager:drawButtons()
+    local w,h = self.window.getSize()
+
+    for i = 0, 2 do
+        self.window.setCursorPos(1, h - i)
+        self.window.clearLine()
+    end
+
+    self.window.setTextColor(colors.white)
+    self.window.setBackgroundColor(BUTTON_BACKGROUND)
+
+    if self.page > 0 then
+        self.window.setCursorPos(1, h - 1)
+        self.window.write(PREV_TEXT)
+        self.window.setCursorPos(1, h - 2)
+        self.window.write(string.rep(" ", #PREV_TEXT))
+        self.window.setCursorPos(1, h)
+        self.window.write(string.rep(" ", #PREV_TEXT))
+    end
+
+    if self.page * self.pageSize + self.pageSize < #self.addressTable then
+        self.window.setCursorPos(w - #NEXT_TEXT, h - 1)
+        self.window.write(NEXT_TEXT)
+        self.window.setCursorPos(w - #NEXT_TEXT, h - 2)
+        self.window.write(string.rep(" ", #NEXT_TEXT))
+        self.window.setCursorPos(w - #NEXT_TEXT, h)
+        self.window.write(string.rep(" ", #NEXT_TEXT))
+    end
+end
+
+function Pager:buttonClick(x, y)
+    local w,h = self.window.getSize()
+    local wx, wy = self.window.getPosition()
+
+    if y < wy + h - 3 or y >= wy + h then
+        return false
+    end
+
+    if x < wx + #PREV_TEXT and x > wx -1 and self.page > 0 then
+        self.page = self.page - 1
+    elseif x >= wx + w - #NEXT_TEXT -1 and x < wx + w -1 and self.page +1 < math.ceil(#self.addressTable / self.pageSize) then
+        self.page = self.page + 1
+    end
+
+    self:draw(self.page)
+    return true
 end
 
 -- line number, text and if line is selected
@@ -29,7 +95,9 @@ function Pager:printLine(line, text, isSelected)
         self.window.setTextColor(self.selectedColors[1])
         self.window.setBackgroundColor(self.selectedColors[2])
 
-        text = self.selectedChars[1] .. " " .. text .. " " .. self.selectedChars[2]
+        if self.selectedChars ~= nil and #self.selectedChars == 2 then
+            text = self.selectedChars[1] .. " " .. text .. " " .. self.selectedChars[2]
+        end
     end
 
     if self.alignCenter then
@@ -37,22 +105,104 @@ function Pager:printLine(line, text, isSelected)
         local textWidth = string.len(text)
         local x = math.floor((width - textWidth) / 2)
         self.window.setCursorPos(x, line)
+    else
+        self.window.setCursorPos(1, line)
     end
 
+    self.window.clearLine()
     self.window.write(text)
 end
 
 function Pager:draw(page)
-    local w = self.window
+    self.page = page
+    local _, height = self.window.getSize()
+    -- local height = height - self.firstLine
+    local space = self.pageSize < (#self.addressTable - (page * self.pageSize)) * 2
+    if space then space = 0 else space = 1 end
 
-    for i, addr in pairs(self.addressTable) do
+    local textColor = self.window.getTextColor()
+    local backgroundColor = self.window.getBackgroundColor()
+
+    local line = self.firstLine
+
+    -- for i, addr in pairs(self.addressTable) do
+    for i = (page * self.pageSize) + 1, (page * self.pageSize) + self.pageSize -1 do
+        if i > #self.addressTable then
+            break
+        end
+
+        local addr = self.addressTable[i]
+
         if i >= (page + 1) * self.pageSize then
             break
         end
-        if i > page * self.pageSize then
-            self.printLine(i, addr, false)
+
+        local text
+
+        if addr.name ~= nil then
+            text = addr.name
+        else
+            text = addressToString(addr.address)
         end
+
+        if i > page * self.pageSize then
+            self.window.setTextColor(textColor)
+            self.window.setBackgroundColor(backgroundColor)
+            self:printLine(line, text, self.selectedID == i)
+        end
+
+        line = line + 1 + space
     end
+
+    while line <= height - 3 do
+        self.window.setCursorPos(1, line)
+        self.window.clearLine()
+        line = line + 1
+    end
+
+    self:drawButtons()
+
+    self.window.setTextColor(textColor)
+    self.window.setBackgroundColor(backgroundColor)
+end
+
+-- returns id of clicked address and true if it was previously selected
+function Pager:touch(x, y)
+    if self:buttonClick(x, y) then
+        return -1, false
+    end
+
+    local space = self.pageSize < (#self.addressTable - (self.page * self.pageSize)) * 2
+    if space then space = 0 else space = 1 end
+
+    local wx, wy = self.window.getPosition()
+    local ww, wh = self.window.getSize()
+
+    local line = (y - wy - self.firstLine + 1) / (1 + space)
+    
+    if math.floor(line) ~= line then
+        return -1, false
+    end
+
+    local id = (self.page * self.pageSize) + line + 1
+    local wasSelected = self.selectedID == id and id ~= -1
+    
+    if x < wx or x >= wx + ww or y < wy + self.firstLine - 1 or y >= wy + wh - 3 then
+        id = -1
+    end
+
+    if id < self.pageSize * self.page or id > #self.addressTable or id >= (self.page + 1) * self.pageSize then
+        id = -1
+    end
+
+    self.selectedID = id
+    if wasSelected then
+        self.selectedID = -1
+    end
+
+    self:draw(self.page)
+
+    return id, wasSelected
 end
 
 

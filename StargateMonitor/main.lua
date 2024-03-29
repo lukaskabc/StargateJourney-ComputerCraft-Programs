@@ -7,16 +7,20 @@
 --
 -- https://github.com/lukaskabc/StargateJourney-ComputerCraft-Programs/tree/main/StargateMonitor
 --
-
+ROOT_DIR = shell.dir()
+EXIT = {} -- exception used for silent program exit
 require("constants")
+require("try")
 require("utils")
 require("run_later")
-local try = require("try")
+
 local universal_interface = require("universal_interface")
 universal_interface.checkInterfaceConnected()
 
 local modules, windows = table.unpack(require("modules_loader"))
 modules["universal_interface"] = universal_interface
+
+
 
 local parallelMethods = {later_exec}
 
@@ -44,6 +48,9 @@ for module_name, module in pairs(modules) do
     if module.run then
         table.insert(parallelMethods, function()
             try(module.run, function(err)
+                if err == EXIT then
+                    return
+                end
                 printError(err)
                 print()
                 printError("Script experienced an unexpected error in module", module_name)
