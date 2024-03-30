@@ -43,19 +43,29 @@ for module_name, module in pairs(modules) do
     end
 end
 
+local function addParallelMethod(method, module_name)
+    table.insert(parallelMethods, function()
+        try(method, function(err)
+            if err == EXIT then
+                return
+            end
+            printError(err)
+            print()
+            printError("Script experienced an unexpected error in module", module_name)
+        end)
+    end)
+end
+
 -- Collect all run methods from modules to be run in parallel
 for module_name, module in pairs(modules) do
     if module.run then
-        table.insert(parallelMethods, function()
-            try(module.run, function(err)
-                if err == EXIT then
-                    return
-                end
-                printError(err)
-                print()
-                printError("Script experienced an unexpected error in module", module_name)
-            end)
-        end)
+        if type(module.run) == "table" then
+            for _, method in pairs(module.run) do
+                addParallelMethod(method, module_name)
+            end
+        elseif type(module.run) == "function" then
+            addParallelMethod(module.run, module_name)
+        end
     end
 end
 

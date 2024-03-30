@@ -46,17 +46,15 @@ function Status.init(modules, windows)
     ENABLE_IDLE_BLINK = Status.configuration.enable_idle_blink.value
     ENABLE_ACTIVE_BLINK = Status.configuration.enable_active_blink.value
 
+    if ENABLE_IDLE_BLINK or ENABLE_ACTIVE_BLINK then
+        Status.run = {Status.eventLoop, Status.blink}
+    else
+        Status.run = Status.eventLoop
+    end
+
     Status.renderGate()
     Status.renderActiveChevrons()
     return 0
-end
-
-function Status.run()
-    if ENABLE_ACTIVE_BLINK or ENABLE_IDLE_BLINK then
-        parallel.waitForAny(Status.blink, Status.eventLoop)
-    else
-        Status.eventLoop()
-    end
 end
 
 function Status.blink()
@@ -307,8 +305,4 @@ function Status.blinkChevron(chevronID)
     end)
 end
 
-return {
-    init = Status.init,
-    run = Status.run,
-    configuration = Status.configuration
-}
+return Status

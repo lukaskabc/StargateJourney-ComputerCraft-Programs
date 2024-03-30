@@ -40,7 +40,7 @@ function Pager:new(window, addressTable, firstLine, alignCenter, selectedChars, 
     return o
 end
 
-function Pager:drawButtons()
+function Pager:drawButtons(normalText, normalBackground)
     local w,h = self.window.getSize()
 
     for i = 0, 2 do
@@ -68,6 +68,20 @@ function Pager:drawButtons()
         self.window.setCursorPos(w - #NEXT_TEXT, h)
         self.window.write(string.rep(" ", #NEXT_TEXT))
     end
+
+    local totalPages = math.ceil(#self.addressTable / self.pageSize)
+    if totalPages > 1 then
+        local pageText = self.page + 1 .. "/" .. totalPages
+        local c = colors.lightGray
+        if c == normalBackground then
+            c = normalText
+        end
+        self.window.setTextColor(c)
+        self.window.setBackgroundColor(normalBackground)
+        self.window.setCursorPos(math.floor((w - #pageText) / 2), h - 1)
+        self.window.write(pageText)
+    end
+
 end
 
 function Pager:buttonClick(x, y)
@@ -160,7 +174,7 @@ function Pager:draw(page)
         line = line + 1
     end
 
-    self:drawButtons()
+    self:drawButtons(textColor, backgroundColor)
 
     self.window.setTextColor(textColor)
     self.window.setBackgroundColor(backgroundColor)
