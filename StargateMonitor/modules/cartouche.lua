@@ -2,7 +2,7 @@ local universal_interface
 local pager
 
 local WIN = nil
-local ADDRESS_TABLE = {{name="Abydos", address = {26, 6, 14, 31, 11, 29}}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name = "uplne neco jineho"}, {name="a jeste jineho"}}
+local ADDRESS_TABLE = {{name="Abydos", address = {26, 6, 14, 31, 11, 29}}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name = "uplne neco jineho"}, {name="a jeste jineho"}, {name = "a posledni"}}
 local FILE = fs.combine(ROOT_DIR, "cartouche.json")
 local TITLE = nil
 

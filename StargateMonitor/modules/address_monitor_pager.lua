@@ -28,7 +28,7 @@ function Pager:new(window, addressTable, firstLine, alignCenter, selectedChars, 
 
     local w,h = window.getSize()
     -- remove bottom 3 lines for buttons
-    o.pageSize = math.min(pageSize, h - firstLine - 1)
+    o.pageSize = math.min(pageSize, h - firstLine - 2)
 
     if type(selectedChars) == "string" then
         o.selectedChars = {}
@@ -139,15 +139,14 @@ function Pager:draw(page)
 
     local line = self.firstLine
 
-    -- for i, addr in pairs(self.addressTable) do
-    for i = (page * self.pageSize) + 1, (page * self.pageSize) + self.pageSize -1 do
+    for i = (page * self.pageSize) + 1, (page * self.pageSize) + self.pageSize do
         if i > #self.addressTable then
             break
         end
 
         local addr = self.addressTable[i]
 
-        if i >= (page + 1) * self.pageSize then
+        if i > (page + 1) * self.pageSize then
             break
         end
 
@@ -163,6 +162,11 @@ function Pager:draw(page)
             self.window.setTextColor(textColor)
             self.window.setBackgroundColor(backgroundColor)
             self:printLine(line, text, self.selectedID == i)
+        end
+
+        for s = 1, space do
+            self.window.setCursorPos(1, line + s)
+            self.window.clearLine()
         end
 
         line = line + 1 + space
@@ -205,7 +209,7 @@ function Pager:touch(x, y)
         id = -1
     end
 
-    if id < self.pageSize * self.page or id > #self.addressTable or id >= (self.page + 1) * self.pageSize then
+    if id < self.pageSize * self.page or id > #self.addressTable or id > (self.page + 1) * self.pageSize then
         id = -1
     end
 
