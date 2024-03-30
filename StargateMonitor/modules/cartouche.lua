@@ -2,7 +2,7 @@ local universal_interface
 local pager
 
 local WIN = nil
-local ADDRESS_TABLE = {{name="Abydos", address = {26, 6, 14, 31, 11, 29}}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name = "uplne neco jineho"}, {name="a jeste jineho"}, {name = "a posledni"}}
+local ADDRESS_TABLE = {{name="Abydos", address = {26, 6, 14, 31, 11, 29}}, {name="Lantea"}, {name="Jina adresa s hodne dlouhym nazvem ktery"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name = "uplne neco jineho"}, {name="a jeste jineho"}, {name = "a posledni"}}
 local FILE = fs.combine(ROOT_DIR, "cartouche.json")
 local TITLE = nil
 
@@ -160,8 +160,8 @@ function Module.render()
         WIN.setBackgroundColor(colors[Module.configuration.header_background_color.value])
         local title = "[ " .. TITLE .. " ]"
         local fil_width = (width - string.len(title)) / 2
-        local fil = string.rep("=", fil_width + 1)
-        pager:printLine(1, fil .. title .. fil, false)
+        local fil = string.rep("=", math.floor(fil_width))
+        pager:printLine(1, fil .. title .. fil, false, true)
     end
 
     WIN.setTextColor(colors[Module.configuration.text_color.value])

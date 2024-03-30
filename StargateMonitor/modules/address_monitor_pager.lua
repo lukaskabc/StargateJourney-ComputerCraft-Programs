@@ -103,7 +103,11 @@ function Pager:buttonClick(x, y)
 end
 
 -- line number, text and if line is selected
-function Pager:printLine(line, text, isSelected)
+function Pager:printLine(line, text, isSelected, bypassTrim)
+    local width, _ = self.window.getSize()
+    if not bypassTrim and string.len(text) + 4 >= width then
+        text = string.sub(text, 1, width - 5)
+    end
 
     if isSelected then
         self.window.setTextColor(self.selectedColors[1])
@@ -112,15 +116,18 @@ function Pager:printLine(line, text, isSelected)
         if self.selectedChars ~= nil and #self.selectedChars == 2 then
             text = self.selectedChars[1] .. " " .. text .. " " .. self.selectedChars[2]
         end
+    elseif not bypassTrim then
+        text = "  " .. text .. "  "
     end
 
     if self.alignCenter then
         local width = self.window.getSize()
         local textWidth = string.len(text)
-        local x = math.floor((width - textWidth) / 2)
+        local x = math.ceil((width - textWidth) / 2)
+        x = math.max(1, x)
         self.window.setCursorPos(x, line)
     else
-        self.window.setCursorPos(1, line)
+        self.window.setCursorPos(2, line)
     end
 
     self.window.clearLine()
