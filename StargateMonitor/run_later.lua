@@ -1,7 +1,7 @@
 local DELAYED = {}
 -- queues task for execution
 function run_later( delay, func )
-    local targetTime = os.epoch() + (delay * 10000)
+    local targetTime = os.epoch("utc") + (delay * 900)
     table.insert(DELAYED, { targetTime = targetTime, func = func, timer = os.startTimer(delay)})
 end
 
@@ -17,7 +17,7 @@ function later_exec()
         DELAYED = {}
 
         for _, v in pairs(copy) do
-            if v.targetTime <= os.epoch() then
+            if v.targetTime <= os.epoch("utc") then
                 os.cancelTimer(v.timer)
                 v.func()
             else

@@ -205,5 +205,48 @@ function Pager:touch(x, y)
     return id, wasSelected
 end
 
+local alertCancelToken = nil
+
+function Pager:showAlert(text, timeout)
+    local local_token = os.epoch("utc")
+    alertCancelToken = local_token
+
+    text = " " .. text .. " "
+
+    local tc = self.window.getTextColor()
+    local bc = self.window.getBackgroundColor()
+
+    local w, h = self.window.getSize()
+    local x = math.floor((w - string.len(text)) / 2)
+    local y = math.floor((h - self.firstLine) / 2)
+
+    self.window.setTextColor(colors.red)
+    self.window.setBackgroundColor(colors.lightGray)
+
+    self.window.setCursorPos(x, y-1)
+    self.window.write(string.rep(" ", string.len(text)))
+    self.window.setCursorPos(x, y+1)
+    self.window.write(string.rep(" ", string.len(text)))
+
+    self.window.setCursorPos(x, y)
+    self.window.write(text)
+
+    self.window.setTextColor(tc)
+    self.window.setBackgroundColor(bc)
+
+    if timeout == nil then
+        timeout = ALERT_TIMEOUT
+    end
+
+    if timeout < 1 then
+        return
+    end
+
+    run_later(timeout, function()
+        if alertCancelToken == local_token then
+            self:draw(self.page)
+        end
+    end)
+end
 
 return Pager

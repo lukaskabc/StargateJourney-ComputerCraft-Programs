@@ -5,3 +5,4 @@ MODULES_FOLDER = "modules" -- dont touch that (used in require which does not re
 THREE_STEP_ENCODE = true
 -- delay used between encode steps with milkyway gate
 CHEVRON_ENCODE_DELAY = 0.5
+ALERT_TIMEOUT = 5 -- seconds

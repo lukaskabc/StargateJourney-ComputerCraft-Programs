@@ -51,6 +51,12 @@ function Module.loadAddressTable()
         printError("Failed to load address table from file: " .. FILE)
         error(EXIT)
     end)
+
+    for i, addr in pairs(ADDRESS_TABLE) do
+        if addr.name == nil and addr.address ~= nil then
+            addr.name = addressToString(addr.address)
+        end
+    end
 end
 
 function Module.init(modules, windows)
@@ -123,15 +129,31 @@ function Module.touch_event(id, x, y)
     end
 
     if ADDRESS_TABLE[addrID].address == nil then
+        if ADDRESS_TABLE[addrID].name == nil then
+            return
+        end
+        pager:showAlert("Missing address!")
         printError("Unable to dial \"" .. ADDRESS_TABLE[addrID].name .. "\" - missing address!")
         return
     end
 
-    universal_interface.dial(ADDRESS_TABLE[addrID].address)
+    pager:showAlert("Dialing " .. ADDRESS_TABLE[addrID].name, -1)
+    
+    try(function() 
+        universal_interface.dial(ADDRESS_TABLE[addrID].address, false, true)
+    end, function(e)
+        if e == STARGATE_ALREADY_DIALING then
+            pager:showAlert("Stargate is already dialing!")
+        else
+            error(e)
+        end
+    end)
+    
+    pager:draw(Module.page)
 end
 
 function Module.render()
-    local width, height = WIN.getSize()
+    local width, _ = WIN.getSize()
     
     if TITLE then
         WIN.setTextColor(colors[Module.configuration.header_text_color.value])

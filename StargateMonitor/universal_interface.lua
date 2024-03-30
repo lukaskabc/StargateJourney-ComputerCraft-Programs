@@ -1,6 +1,7 @@
-local STARGATE_NOT_CONNECTED_ERROR = {message = "Interface is not connected to a stargate!"}
-local INTERFACE_NOT_CONNECTED_ERROR = {message = "Interface not found!"}
-local INSUFFICIENT_INTERFACE = {message = "Crystal interface is required for this gate type!"}
+STARGATE_NOT_CONNECTED_ERROR = {message = "Interface is not connected to a stargate!"}
+INTERFACE_NOT_CONNECTED_ERROR = {message = "Interface not found!"}
+INSUFFICIENT_INTERFACE = {message = "Crystal interface is required for this gate type!"}
+STARGATE_ALREADY_DIALING = {message = "Stargate is already dialing!"}
 local FEEDBACK = require("stargate_feedbacks")
 -- dialing milkyway stargate will use three step symbol encoding (open, encode, close)
 local THREE_STEP_ENCODE = true
@@ -299,10 +300,11 @@ end
 
 -- Dials specified address
 -- params quick_dial and direct_engage are optional and will override global settings when specified
--- returns FEEDBACK.UNKNOWN_ERROR if dial is already in progress
+-- throws STARATE_ALREADY_DIALING if stargate has already engaged any chevron
 function universal_interface.dial(address, quick_dial, direct_engage)
     universal_interface.checkInterfaceConnected()
-    if universal_interface.dial_in_progress then
+    if universal_interface.dial_in_progress or universal_interface.getChevronsEngaged() > 0 then
+        error(STARGATE_ALREADY_DIALING)
         return FEEDBACK.UNKNOWN_ERROR
     end
 
@@ -366,6 +368,10 @@ end
 -- does not resets stargate!
 function universal_interface.abortDial()
     universal_interface.dial_in_progress = false
+    
+    if interface.endRotation then
+        interface.endRotation()
+    end
 end
 
 function universal_interface.isDialing()
