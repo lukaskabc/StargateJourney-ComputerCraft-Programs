@@ -98,7 +98,7 @@ function Module.run()
 end
 
 function Module.monitor_touch(id, x, y)
-    if not Module.configuration.enable_touch_reset.value or not WIN.monitor then
+    if not Module.configuration.enable_touch_reset.value or not WIN.monitor or not WIN.isVisible() then
         return
     end
 

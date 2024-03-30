@@ -106,7 +106,7 @@ function Module.run()
 end
 
 function Module.touch_event(id, x, y)
-    if id ~= peripheral.getName(WIN.monitor) then
+    if id ~= peripheral.getName(WIN.monitor) or not WIN.isVisible() then
         return
     end
 

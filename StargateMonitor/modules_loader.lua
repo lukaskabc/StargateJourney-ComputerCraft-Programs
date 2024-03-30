@@ -166,7 +166,7 @@ for i, record in pairs(monitor_config) do
 
         w.module = win.module
         w.monitor = monitor
-        table.insert(windows, w)
+        windows[w.module] = w
     end
 end
 
