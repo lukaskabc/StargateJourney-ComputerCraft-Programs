@@ -8,7 +8,7 @@ local THREE_STEP_ENCODE = true
 -- delay used between encode steps with milkyway gate
 local CHEVRON_ENCODE_DELAY = 0.5
 local interface = peripheral.find("basic_interface") or peripheral.find("crystal_interface") or peripheral.find("advanced_crystal_interface")
-require("constants")
+require("globals")
 
 
 --[[
@@ -30,8 +30,13 @@ local universal_interface = {
 -- return true if the interface is connected to the stargate
 -- throws error otherwise
 function universal_interface.checkInterfaceConnected()
+    interface = peripheral.find("basic_interface") or peripheral.find("crystal_interface") or peripheral.find("advanced_crystal_interface")
     if interface and (interface.engageSymbol or interface.rotateClockwise) then
         return true
+    end
+
+    if not interface then
+        error(INTERFACE_NOT_CONNECTED_ERROR)
     end
 
     if not interface.disconnectStargate then
@@ -71,49 +76,49 @@ function universal_interface.getEnergy()
     if not interface then
         error(INTERFACE_NOT_CONNECTED_ERROR)
     end
-    return interface.getEnergy()
+    return interface.getEnergy() or error(STARGATE_NOT_CONNECTED_ERROR)
 end
 
 -- returns current energy target (the amount to which will be interface pushing energy to the stargate)
 function universal_interface.getEnergyTarget()
     universal_interface.checkInterfaceConnected()
-    return interface.getEnergyTarget()
+    return interface.getEnergyTarget() or error(STARGATE_NOT_CONNECTED_ERROR)
 end
 
 -- sets the energy target (the amount to which will be interface pushing energy to the stargate)
 function universal_interface.setEnergyTarget(energy)
     universal_interface.checkInterfaceConnected()
-    return interface.setEnergyTarget(energy)
+    return interface.setEnergyTarget(energy) or error(STARGATE_NOT_CONNECTED_ERROR)
 end
 
 -- Returns the registry ID of the Stargate (For example: "sgjourney:milky_way_stargate").
 function universal_interface.getStargateType()
     universal_interface.checkInterfaceConnected()
-    return interface.getStargateType()
+    return interface.getStargateType() or error(STARGATE_NOT_CONNECTED_ERROR)
 end
 
 -- Returns the energy (in FE) the Stargate has stored.
 function universal_interface.getStargateEnergy()
     universal_interface.checkInterfaceConnected()
-    return interface.getStargateEnergy()
+    return interface.getStargateEnergy() or error(STARGATE_NOT_CONNECTED_ERROR)
 end
 
 -- If the Stargate is connected, the command disconnects it. If it isn't connected, the Stargate will be reset.
 function universal_interface.disconnectStargate()
     universal_interface.checkInterfaceConnected()
-    return interface.disconnectStargate()
+    return interface.disconnectStargate() or error(STARGATE_NOT_CONNECTED_ERROR)
 end
 
 -- Returns the number of chevrons that have been engaged.
 function universal_interface.getChevronsEngaged()
     universal_interface.checkInterfaceConnected()
-    return interface.getChevronsEngaged()
+    return interface.getChevronsEngaged() or error(STARGATE_NOT_CONNECTED_ERROR)
 end
 
 -- Returns the number of Ticks the Stargate has been active for, returns 0 if it's inactive.
 function universal_interface.getOpenTime()
     universal_interface.checkInterfaceConnected()
-    return interface.getOpenTime()
+    return interface.getOpenTime() or error(STARGATE_NOT_CONNECTED_ERROR)
 end
 
 -- Returns true if the Stargate is currently connected, otherwise returns false.
@@ -152,7 +157,7 @@ end
 -- Returns the currently dialed address (for outgoing connection) or empty table {}.
 function universal_interface.getDialedAddress()
     if interface and interface.getDialedAddress then
-        return interface.getDialedAddress()
+        return interface.getDialedAddress() or error(STARGATE_NOT_CONNECTED_ERROR)
     end
 
     return {}
@@ -161,7 +166,7 @@ end
 -- Returns the currently connected address (the address on the other side of the connection) or empty table {}.
 function universal_interface.getConnectedAddress()
     if interface and interface.getConnectedAddress then
-        return interface.getConnectedAddress()
+        return interface.getConnectedAddress() or error(STARGATE_NOT_CONNECTED_ERROR)
     end
 
     return {}
@@ -170,7 +175,7 @@ end
 -- Returns the 9-chevron address of the Stargate or empty table {}
 function universal_interface.getLocalAddress()
     if interface and interface.getLocalAddress then
-        return interface.getLocalAddress()
+        return interface.getLocalAddress() or error(STARGATE_NOT_CONNECTED_ERROR)
     end
 
     return {}
@@ -202,7 +207,7 @@ function universal_interface.getDirectEngage()
 end
 
 local function direct_symbol_engage(i, address, quick_dial)
-    local result = interface.engageSymbol(address[i])
+    local result = interface.engageSymbol(address[i]) or error(STARGATE_NOT_CONNECTED_ERROR)
 
     while(universal_interface.getChevronsEngaged() < i) do
         if not universal_interface.dial_in_progress or quick_dial then break end
@@ -217,9 +222,9 @@ local function rotational_symbol_engage_impl(symbol, delay, direction)
     local feedback
 
     if direction then
-        feedback = interface.rotateClockwise(symbol)
+        feedback = interface.rotateClockwise(symbol) or error(STARGATE_NOT_CONNECTED_ERROR)
     else
-        feedback = interface.rotateAntiClockwise(symbol)
+        feedback = interface.rotateAntiClockwise(symbol) or error(STARGATE_NOT_CONNECTED_ERROR)
     end
 
     if feedback < 0 then
@@ -235,7 +240,7 @@ local function rotational_symbol_engage_impl(symbol, delay, direction)
 
     sleep(delay)
     if not universal_interface.dial_in_progress then return feedback end
-    feedback = interface.openChevron()
+    feedback = interface.openChevron() or error(STARGATE_NOT_CONNECTED_ERROR)
     if feedback < 0 or not universal_interface.dial_in_progress then return feedback end
 
     -- print("opened chevron", feedback)
@@ -243,14 +248,14 @@ local function rotational_symbol_engage_impl(symbol, delay, direction)
     if symbol ~= 0 and THREE_STEP_ENCODE then
         sleep(delay)
         if not universal_interface.dial_in_progress then return feedback end
-        feedback = interface.encodeChevron()
+        feedback = interface.encodeChevron() or error(STARGATE_NOT_CONNECTED_ERROR)
         -- print("encoded chevron", feedback)
         if feedback < 0 or not universal_interface.dial_in_progress then return feedback end
     end
 
     sleep(delay)
     if not universal_interface.dial_in_progress then return feedback end
-    feedback = interface.closeChevron()
+    feedback = interface.closeChevron() or error(STARGATE_NOT_CONNECTED_ERROR)
     -- print("closed chevron", feedback)
     if THREE_STEP_ENCODE and feedback == FEEDBACK.SYMBOL_IN_ADDRESS.code then
         feedback = FEEDBACK.SYMBOL_ENCODED.code
@@ -306,6 +311,14 @@ function universal_interface.dial(address, quick_dial, direct_engage)
     if universal_interface.dial_in_progress or universal_interface.getChevronsEngaged() > 0 then
         error(STARGATE_ALREADY_DIALING)
         return FEEDBACK.UNKNOWN_ERROR
+    end
+
+    if quick_dial == nil then
+        quick_dial = QUICK_DIAL
+    end
+
+    if direct_engage == nil then
+        direct_engage = DIRECT_ENGAGE
     end
 
     universal_interface.dial_in_progress = true
@@ -370,7 +383,7 @@ function universal_interface.abortDial()
     universal_interface.dial_in_progress = false
     
     if interface.endRotation then
-        interface.endRotation()
+        local _ = interface.endRotation() or error(STARGATE_NOT_CONNECTED_ERROR)
     end
 end
 

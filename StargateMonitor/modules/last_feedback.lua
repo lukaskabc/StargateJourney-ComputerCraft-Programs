@@ -48,13 +48,18 @@ end
 
 function Module.run()
     while true do
-        local ev = {os.pullEvent()}
+        os.pullEvent()
         Module.renderFeedback()
     end
 end
 
 function Module.renderFeedback()
     local code, message = universal_interface.getRecentFeedback()
+
+    if not code then
+        universal_interface.checkInterfaceConnected()
+        return
+    end
 
     if code == Module.last_feedback then
         return

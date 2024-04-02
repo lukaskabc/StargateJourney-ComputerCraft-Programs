@@ -140,7 +140,7 @@ function Module.touch_event(id, x, y)
     pager:showAlert("Dialing " .. ADDRESS_TABLE[addrID].name, -1)
     
     try(function() 
-        universal_interface.dial(ADDRESS_TABLE[addrID].address, false, true)
+        universal_interface.dial(ADDRESS_TABLE[addrID].address)
     end, function(e)
         if e == STARGATE_ALREADY_DIALING then
             pager:showAlert("Stargate is already dialing!")

@@ -9,10 +9,12 @@
 --
 ROOT_DIR = shell.dir()
 EXIT = {} -- exception used for silent program exit
-require("constants")
+require("globals")
 require("try")
 require("utils")
 require("run_later")
+
+require("stargate_connection_instructor")(false)
 
 local universal_interface = require("universal_interface")
 universal_interface.checkInterfaceConnected()
@@ -20,7 +22,7 @@ universal_interface.checkInterfaceConnected()
 local modules, windows = table.unpack(require("modules_loader"))
 modules["universal_interface"] = universal_interface
 
-
+local pretty_print = require("cc.pretty").pretty_print
 
 local parallelMethods = {later_exec}
 
@@ -49,9 +51,9 @@ local function addParallelMethod(method, module_name)
             if err == EXIT then
                 return
             end
-            printError(err)
             print()
             printError("Script experienced an unexpected error in module", module_name)
+            error(err)
         end)
     end)
 end
@@ -69,5 +71,35 @@ for module_name, module in pairs(modules) do
     end
 end
 
+local function error_handle(err)
+    if err == EXIT then
+        return
+    end
 
-parallel.waitForAny(table.unpack(parallelMethods))
+    if type(err) == "table" then
+        if err == STARGATE_NOT_CONNECTED_ERROR or
+        err == INTERFACE_NOT_CONNECTED_ERROR or
+        err == INSUFFICIENT_INTERFACE or
+        err == STARGATE_ALREADY_DIALING then
+            os.reboot()
+            return
+        end
+
+        pretty_print(err)
+    else
+        pretty_print(err)
+    end
+    print()
+    printError("Script experienced an unexpected error")
+    printError("Please report this error to the script author")
+    printError("Press any key to restart the computer...")
+    os.pullEvent("key")
+    os.reboot()
+    return 1
+end
+
+print("Startup completed")
+
+try(function()
+    parallel.waitForAny(table.unpack(parallelMethods))
+end, error_handle)
