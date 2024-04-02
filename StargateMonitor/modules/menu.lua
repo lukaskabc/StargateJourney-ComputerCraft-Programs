@@ -39,49 +39,63 @@ function Module:new(module_names, windows, window)
     self.__index = self
 
     o.window = window
+    o.buttons_filled = false
     o.windows = {}
     o.buttons = {}
-    o.active_window = nil
+    o.active_button = nil
 
     -- init module names and their windows
     for i, m in pairs(module_names) do
-        local name = m[1]
-        local module_name = m[2]
-        local win = windows[module_name]
+        local name = m[1] -- button name
+        local module_name = m[2] -- name of the module
+        local win = windows[module_name] -- window of the module
         if win == nil then
             printError("Error during Menu buidling")
             printError("Failed to find window for module: " .. module_name)
             return 1
         end
 
-        if o.active_window == nil then
-            o.active_window = win
-        else
-            hide_window(win)
+        if o.active_button == nil then
+            o.active_button = name
         end
 
-        table.insert(o.windows, {name = name, window = win})
+        if o.windows[name] == nil then o.windows[name] = {} end
+        table.insert(o.windows[name], win)
     end
 
     local w,h = o.window.getSize()
 
     o.menu_lines = {}
     o.menu_lines[1] = {}
+    local btns = {}
     local line_width = 0
     local line = 1
-    for i, m in pairs(o.windows) do
-        if line_width + #m.name + 3 <= w then
-            line_width = line_width + #m.name + 3
-            table.insert(o.menu_lines[line], m)
+    for name, _ in pairs(o.windows) do repeat
+        if btns[name] ~= nil then
+            break -- continue
+        end
+        btns[name] = true
+        if line_width + #name + 3 <= w then
+            line_width = line_width + #name + 3
+            table.insert(o.menu_lines[line], name)
         elseif line_width == 0 then
             printError("Error during Menu buidling")
-            printError("Name: " .. m.name)
+            printError("Name: " .. name)
             printError("Is too long for given menu window width")
             printError("Max name length for current window width is " .. w - 1)
         else
             line_width = 0
             line = line + 4
-            o.menu_lines[line] = {m}
+            o.menu_lines[line] = {name}
+        end
+    until true
+    end
+
+    for name, wins in pairs(o.windows) do
+        if name ~= o.active_button then
+            for _, w in pairs(o.windows[name]) do
+                hide_window(w)
+            end
         end
     end
 
@@ -97,14 +111,14 @@ function Module:renderButtons()
     for line, menu_line in pairs(self.menu_lines) do
         local lineLength = 0
         for _, btn in pairs(menu_line) do
-            lineLength = lineLength + #btn.name
+            lineLength = lineLength + #btn
         end
 
         local space = math.floor((ww - lineLength) / (#menu_line + 1))
         local position = space
 
         for _, btn in pairs(menu_line) do
-            if self.active_window == btn.window then
+            if self.active_button == btn then
                 self.window.setTextColor(colors[self.configuration.active_text_color.value])
                 self.window.setBackgroundColor(colors[self.configuration.active_background_color.value])
             else
@@ -112,7 +126,7 @@ function Module:renderButtons()
                 self.window.setBackgroundColor(colors[self.configuration.background_color.value])
             end
 
-            local txt = " " .. btn.name .. " "
+            local txt = " " .. btn .. " "
             self.window.setCursorPos(position, line)
             self.window.write(string.rep(" ", #txt))
             self.window.setCursorPos(position, line + 1)
@@ -120,11 +134,14 @@ function Module:renderButtons()
             self.window.setCursorPos(position, line + 2)
             self.window.write(string.rep(" ", #txt))
 
-            table.insert(self.buttons, {window = btn.window, x = position, y = line, length = #txt})
+            if not self.buttons_filled then
+                table.insert(self.buttons, {name = btn, x = position, y = line, length = #txt})
+            end
 
             position = position + #txt + space
         end
     end
+    self.buttons_filled = true
 end
 
 function Module:handle_click(x, y)
@@ -146,12 +163,17 @@ function Module:handle_click(x, y)
 
     if button == nil then return end
 
-    if self.active_window ~= nil then
-        hide_window(self.active_window)
+    if self.active_button ~= nil then
+        for _, w in pairs(self.windows[self.active_button]) do
+            hide_window(w)
+        end
     end
 
-    self.active_window = button.window
-    show_window(self.active_window)
+    self.active_button = button.name
+
+    for _, w in pairs(self.windows[button.name]) do
+        show_window(w)
+    end
 
     self:renderButtons()
 end
