@@ -27,7 +27,7 @@ function Status.init(modules, windows)
     universal_interface = modules["universal_interface"]
 
     for i, win in pairs(windows) do
-        if win.module == "gate_vizualization" then
+        if win.module == "gate_visualization" then
             WIN = win
             break
         end

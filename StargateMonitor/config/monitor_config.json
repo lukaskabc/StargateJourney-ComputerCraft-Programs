@@ -4,7 +4,7 @@
         "textScale": 0.5,
         "windows": [
             {
-                "module": "gate_vizualization",
+                "module": "gate_visualization",
                 "x": 4,
                 "y": 2
             },

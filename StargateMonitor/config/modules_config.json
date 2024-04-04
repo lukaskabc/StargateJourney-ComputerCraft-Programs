@@ -18,5 +18,17 @@
     },
     "last_feedback": {
         "line_width": 36
+    },
+    "menu_module": {
+        "menu": [
+            {
+                "button": "Status",
+                "modules": ["gate_visualization", "status_button", "last_feedback"]
+            },
+            {
+                "button": "Cartouche",
+                "modules": ["cartouche"]
+            }
+        ]
     }
 }

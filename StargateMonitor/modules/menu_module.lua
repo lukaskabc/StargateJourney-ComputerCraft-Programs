@@ -21,20 +21,18 @@ function Module.init(modules, windows)
         return 1
     end
 
-    local menu_windows = {}
+    local menu_entries = {}
 
     for _, menu in pairs(Module.configuration.menu.value) do
         local button_name = menu.button
-        local mdls = menu.modules
+        local button_modules = menu.modules
 
-        local w = nil
-        for _, m in pairs(mdls) do
-            
-            
+        for _, m in pairs(button_modules) do
+            table.insert(menu_entries, {button_name, m})
         end
     end
 
-    Module.menu = modules["menu"]:new({{"Status", "gate_vizualization"}, {"Cartouche", "cartouche"}, {"Status", "status_button"}, {"Status", "last_feedback"}}, windows, WIN)
+    Module.menu = modules["menu"]:new(menu_entries, windows, WIN)
 
     Module.menu:renderButtons()
 
