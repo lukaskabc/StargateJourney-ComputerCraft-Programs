@@ -112,9 +112,15 @@ for i, record in pairs(monitor_config) do
         return 1
     end
 
-    if not monitor.isColor() and peripheral.getType(monitor) ~= "Create_DisplayLink" then
+    if peripheral.getType(monitor) == "Create_DisplayLink" then
+        monitor = create_link_wrapper(monitor)
+    else
+        monitor.update = function() end
+        monitor.isCreateLink = function() return false end
+    end
+
+    if not monitor.isColor() and not ALLOW_NON_ADVANCED_MONITORS and not monitor.isCreateLink() then
         printError("Monitor with name", peripheral.getName(monitor), "is not an advanced monitor!")
-        recommendReinstall()
         return 1
     end
 
@@ -139,28 +145,36 @@ for i, record in pairs(monitor_config) do
             return 1
         end
 
-        local width = 5
-        local height = 5
-
-        if win.width ~= nil then
-            width = win.width
-
-            if width < 1 then
-                width, _ = monitor.getSize()
-                width = width - win.x + 1
-            end
+        if monitor.isCreateLink() and not modules[win.module].textOnly then
+            printError("Module", win.module, "does not support Create Link monitors!")
+            recommendReinstall()
+            return 1
         end
 
-        if win.height ~= nil then
-            height = win.height
+        local width = win.width
+        local height = win.height
 
-            if height < 1 then
-                _, height = monitor.getSize()
-                height = height - win.y + 1
-            end
+        if width == nil then width = -1 end
+        if height == nil then height = -1 end
+
+        if width < 1 then
+            width, _ = monitor.getSize()
+            width = width - win.x + 1
+        end
+        
+        if height < 1 then
+            _, height = monitor.getSize()
+            height = height - win.y + 1
         end
 
         local w = window.create(monitor, win.x, win.y, width, height, true)
+
+        local redraw = w.redraw
+        w.redraw = function()
+            monitor.update()
+            redraw()
+        end
+
         w.clear()
         w.redraw()
 

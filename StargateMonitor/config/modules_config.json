@@ -17,7 +17,7 @@
         "enable_touch_reset": true
     },
     "last_feedback": {
-        "line_width": 36
+        "line_width": -1
     },
     "menu_module": {
         "menu": [

@@ -8,3 +8,4 @@ DIRECT_ENGAGE = false
 -- delay used between encode steps with milkyway gate
 CHEVRON_ENCODE_DELAY = 0.5
 ALERT_TIMEOUT = 5 -- seconds
+ALLOW_NON_ADVANCED_MONITORS = true

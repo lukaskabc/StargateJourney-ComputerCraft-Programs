@@ -22,6 +22,7 @@ local function hide_window(win)
     dummy_window.setVisible(true)
     dummy_window.clear()
     dummy_window.redraw()
+    win.monitor.update()
     dummy_window.setVisible(false)
 end
 

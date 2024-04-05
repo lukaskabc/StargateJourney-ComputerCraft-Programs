@@ -14,6 +14,13 @@ require("try")
 require("utils")
 require("run_later")
 
+--[[
+TODOs: 
+Support for create link in text only modules (like last feedback)
+and add checks that module is text only and so supports create links
+
+]]
+
 require("stargate_connection_instructor")(false)
 
 local universal_interface = require("universal_interface")

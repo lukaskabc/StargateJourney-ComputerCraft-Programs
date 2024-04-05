@@ -13,11 +13,7 @@
                 "x": 10,
                 "y": 27
             },
-            {
-                "module": "last_feedback",
-                "x": 1,
-                "y": 31
-            },
+
             {
                 "module": "cartouche",
                 "x": 39,
@@ -31,6 +27,17 @@
                 "y": 18,
                 "width": 40,
                 "height": 0
+            }
+        ]
+    },
+    {
+        "monitor": "Create_DisplayLink_4",
+        "textScale": 1,
+        "windows": [
+            {
+                "module": "last_feedback",
+                "x": 1,
+                "y": 1
             }
         ]
     }

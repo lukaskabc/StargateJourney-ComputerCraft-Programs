@@ -37,7 +37,7 @@ function Module.init(modules, windows)
     local x, y = WIN.getPosition()
     local width = Module.configuration.line_width.value
     if width < 1 then
-        width = WIN.monitor.getSize()
+        width, _ = WIN.monitor.getSize()
     end
 
     WIN.reposition(x, y, width, Module.configuration.line_max_height.value)
@@ -78,7 +78,7 @@ function Module.renderFeedback()
     if Module.configuration.align_center.value then
         local w, _ = WIN.getSize()
         x = math.floor((w - string.len(message)) / 2)
-        x = x + 1
+        x = math.max(x + 1, 1)
     end
 
     Module.last_feedback = code
@@ -91,10 +91,12 @@ function Module.renderFeedback()
     term.redirect(WIN)
     write(message)
     term.redirect(terminal)
+    WIN.monitor.update()
 end
 
 return {
     init = Module.init,
     run = Module.run,
-    configuration = Module.configuration
+    configuration = Module.configuration,
+    textOnly = true
 }
