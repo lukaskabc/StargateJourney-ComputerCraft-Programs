@@ -230,10 +230,12 @@ function Pager:touch(x, y)
     return id, wasSelected
 end
 
+local alertSerial = 0
 local alertCancelToken = nil
 
 function Pager:showAlert(text, timeout)
-    local local_token = os.epoch("utc")
+    local local_token = alertSerial
+    alertSerial = alertSerial + 1
     alertCancelToken = local_token
 
     text = " " .. text .. " "
