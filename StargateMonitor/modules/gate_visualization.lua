@@ -305,4 +305,6 @@ function Status.blinkChevron(chevronID)
     end)
 end
 
+Status.name = "Gate Visualization"
+Status.description = "Displays visualization of the Stargate"
 return Status

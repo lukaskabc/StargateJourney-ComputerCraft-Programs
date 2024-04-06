@@ -173,5 +173,7 @@ end
 return {
     init = Module.init,
     run = Module.run,
-    configuration = Module.configuration
+    configuration = Module.configuration,
+    name = "Cartouche",
+    description = "Displays list of saved addresses and allows to dial them"
 }

@@ -98,5 +98,7 @@ return {
     init = Module.init,
     run = Module.run,
     configuration = Module.configuration,
+    name = "Last Feedback",
+    description = "Shows last feedback from stargate as simple text message",
     textOnly = true
 }

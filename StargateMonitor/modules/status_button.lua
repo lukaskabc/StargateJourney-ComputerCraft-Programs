@@ -170,5 +170,7 @@ end
 return {
     init = Module.init,
     run = Module.run,
-    configuration = Module.configuration
+    configuration = Module.configuration,
+    name = "Status button",
+    description = "Button that displays the status of the Stargate and allows to reset it"
 }

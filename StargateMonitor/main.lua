@@ -30,6 +30,15 @@ local modules, windows = table.unpack(require("modules_loader"))
 modules["universal_interface"] = universal_interface
 
 local pretty_print = require("cc.pretty").pretty_print
+local configuration_manager = require("configuration_manager")
+
+local w, h = term.getSize()
+local win = window.create(term.current(), 1, 1, w, h + 1, true)
+configuration_manager(modules, win)
+
+if true then
+    return
+end
 
 local parallelMethods = {later_exec}
 
