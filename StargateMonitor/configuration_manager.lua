@@ -8,6 +8,7 @@ local color_edit_page = {override = true}
 local pretty_print = require("cc.pretty").pretty_print
 local ccstrings = require("cc.strings")
 local HEADER_COLOR = colors.orange
+local COLORS = {"white", "orange", "magenta", "lightBlue", "yellow", "lime", "pink", "gray", "lightGray", "cyan", "purple", "blue", "brown", "green", "red", "black"}
 
 local function printCentered(text)
     local w, h = term.getSize()
@@ -29,21 +30,27 @@ end
 
 local function close_edit_page()
     manager.editWindow.setVisible(false)
-        manager.editWindow.setCursorBlink(false)
-        manager.window.redraw()
-        manager.pageWindow.redraw()
-        local old = manager.page
-        manager.page = module_configuration_page
-        manager.page.init(old.module)
-        manager.selected = old.id
-        manager.scroll = old.scroll
-        manager.page.print()
+    manager.editWindow.setCursorBlink(false)
+    manager.window.redraw()
+    manager.pageWindow.redraw()
+    local old = manager.page
+    manager.page = module_configuration_page
+    manager.page.init(old.module)
+    manager.selected = old.id
+    manager.scroll = old.scroll
+    manager.page.print()
 end
 
 local function edit_page_event_handle(ev)
     if ev[1] == "key" then
         if ev[2] == keys.enter then
-            manager.page.option.value = manager.page.value
+            local val = manager.page.value
+            if manager.page.option.type == "number" then
+                val = tonumber(val)
+            end
+            manager.page.option.value = val
+            print(manager.page.option)
+            
             close_edit_page()
         elseif ev[2] == keys["end"] then
             close_edit_page()
@@ -56,10 +63,18 @@ local function edit_page_event_handle(ev)
     end
 end
 
+local function print_edit_page_footer(h)
+    term.setCursorPos(1, h-1)
+    term.setTextColor(colors.lightGray)
+    term.setBackgroundColor(colors.gray)
+    printCentered("Press Enter to save, End to cancel")
+    term.setTextColor(colors.white)
+end
+
 function text_edit_page.init(option, module)
-    text_edit_page.option = option
-    text_edit_page.module = module
-    text_edit_page.x = option.value:len() + 3
+    manager.page.option = option
+    manager.page.module = module
+    manager.page.x = tostring(option.value):len() + 3
 end
 
 function text_edit_page.print()
@@ -68,23 +83,20 @@ function text_edit_page.print()
     term.redirect(manager.editWindow)
     printCentered("Enter text value:")
     term.setCursorPos(3, 5)
-    local v = ccstrings.ensure_width(text_edit_page.value, w-4)
+    local v = ccstrings.ensure_width(manager.page.value, w-4)
     term.setBackgroundColor(colors.black)
     term.setTextColor(colors.white)
     term.write(v)
     term.setBackgroundColor(colors.gray)
 
-    term.setCursorPos(1, h-1)
-    term.setTextColor(colors.lightGray)
-    printCentered("Press Enter to save, End to cancel")
-    term.setTextColor(colors.white)
+    print_edit_page_footer(h)
 
     term.redirect(t)
 
     manager.editWindow.setVisible(true)
     manager.editWindow.setCursorBlink(true)
     manager.editWindow.restoreCursor()
-    manager.editWindow.setCursorPos(text_edit_page.x, 5)
+    manager.editWindow.setCursorPos(manager.page.x, 5)
 end
 
 
@@ -93,34 +105,34 @@ function text_edit_page.handle_event(ev)
     if ev[1] == "key" then
         if ev[2] == keys.backspace then
             local x, y = manager.editWindow.getCursorPos()
-            if #text_edit_page.value == 0 then return end
+            if #manager.page.value == 0 then return end
             if x <= 3 then return end
-            text_edit_page.value = text_edit_page.value:sub(1, x-4)..text_edit_page.value:sub(x-2)
-            text_edit_page.x = x-1
-            text_edit_page.print()
+            manager.page.value = manager.page.value:sub(1, x-4)..manager.page.value:sub(x-2)
+            manager.page.x = x-1
+            manager.page.print()
         elseif ev[2] == keys.delete then
             local x, y = manager.editWindow.getCursorPos()
-            if #text_edit_page.value == 0 then return end
-            text_edit_page.value = text_edit_page.value:sub(1, x-3)..text_edit_page.value:sub(x-1)
-            text_edit_page.print()
+            if #manager.page.value == 0 then return end
+            manager.page.value = manager.page.value:sub(1, x-3)..manager.page.value:sub(x-1)
+            manager.page.print()
         elseif ev[2] == keys.left then
             local x, y = manager.editWindow.getCursorPos()
             if x > 3 then
                 manager.editWindow.setCursorPos(x - 1, y)
-                text_edit_page.x = x-1
+                manager.page.x = x-1
             end
         elseif ev[2] == keys.right then
             local x, y = manager.editWindow.getCursorPos()
             local w, h = manager.editWindow.getSize()
-            if x < w-2 and x <= #text_edit_page.value + 2 then
-                text_edit_page.x = x + 1
-                manager.editWindow.setCursorPos(text_edit_page.x, y)
+            if x < w-2 and x <= #manager.page.value + 2 then
+                manager.page.x = x + 1
+                manager.editWindow.setCursorPos(manager.page.x, y)
             end
         end
     elseif ev[1] == "char" then
-        text_edit_page.value = text_edit_page.value:sub(1, text_edit_page.x-3)..ev[2]..(text_edit_page.value:sub(text_edit_page.x-2) or "")
-        text_edit_page.x = text_edit_page.x + 1
-        text_edit_page.print()
+        manager.page.value = manager.page.value:sub(1, manager.page.x-3)..ev[2]..(manager.page.value:sub(manager.page.x-2) or "")
+        manager.page.x = manager.page.x + 1
+        manager.page.print()
     end
 
     edit_page_event_handle(ev)
@@ -135,50 +147,130 @@ function boolean_edit_page.print()
     local t = term.current()
     local w, h = manager.editWindow.getSize()
     term.redirect(manager.editWindow)
-    printCentered("Enter text value:")
-    term.setCursorPos(3, 5)
-    local v = ccstrings.ensure_width(text_edit_page.value, w-4)
-    term.setBackgroundColor(colors.black)
-    term.setTextColor(colors.white)
-    term.write(v)
-    term.setBackgroundColor(colors.gray)
-
-    term.setCursorPos(1, h-1)
     term.setTextColor(colors.lightGray)
-    printCentered("Press Enter to save")
+    term.setCursorPos(3, 3)
+    printCentered("Click on the value")
+    term.setCursorPos(3, 4)
+    printCentered("or press space to change it")
+    term.setCursorPos(3, 6)
+    if manager.page.value then
+        term.setBackgroundColor(colors.green)
+    else
+        term.setBackgroundColor(colors.red)
+    end
+
     term.setTextColor(colors.white)
+    printCentered(" "..ccstrings.ensure_width(tostring(manager.page.value), 5).." ")
+
+    print_edit_page_footer(h)
 
     term.redirect(t)
 
     manager.editWindow.setVisible(true)
-    manager.editWindow.setCursorBlink(true)
-    manager.editWindow.restoreCursor()
-    manager.editWindow.setCursorPos(text_edit_page.x, 5)
+    manager.editWindow.setCursorBlink(false)
 end
 
 function boolean_edit_page.handle_event(ev)
+    if ev[1] == "mouse_click" then
+        local x, y = ev[3], ev[4]
+        if x > 22 and x < 29 and y == 10 then
+            manager.page.value = not manager.page.value
+            manager.page.print()
+        end
+    elseif ev[1] == "key" and ev[2] == keys.space then
+        manager.page.value = not manager.page.value
+        manager.page.print()
+    end
+
+    edit_page_event_handle(ev)
 end
 
 function number_edit_page.init(option, module)
-    number_edit_page.option = option
-    number_edit_page.module = module
+    text_edit_page.init(option, module)
 end
 
 function number_edit_page.print()
+    text_edit_page.print()
 end
 
 function number_edit_page.handle_event(ev)
+    if ev[1] == "char" then
+        if tonumber(ev[2]) == nil and (ev[2] ~= "-" or manager.page.x ~= 3) then
+            return
+        end
+
+        if ev[2] == "-" and manager.page.value:sub(1, 1) == "-" then
+            return
+        end
+
+        manager.page.value = manager.page.value:sub(1, manager.page.x-3)..ev[2]..(manager.page.value:sub(manager.page.x-2) or "")
+        manager.page.x = manager.page.x + 1
+        manager.page.print()
+
+        return
+    end
+    text_edit_page.handle_event(ev)
 end
 
 function color_edit_page.init(option, module)
     color_edit_page.option = option
     color_edit_page.module = module
+    color_edit_page.selected = 1
+    for i, name in pairs(COLORS) do
+        if name == option.value then
+            color_edit_page.selected = i
+            break
+        end
+    end
 end
 
 function color_edit_page.print()
+    local t = term.current()
+    local w, h = manager.editWindow.getSize()
+    term.redirect(manager.editWindow)
+    printCentered("Pick color:")
+    term.setCursorPos(math.floor((w/2)-#COLORS), 5)
+    
+    for i, name in pairs(COLORS) do
+        term.setBackgroundColor(colors[name])
+        term.setTextColor(colors.white)
+        if name == "white" then
+            term.setTextColor(colors.black)
+        end
+        if i == manager.page.selected then
+            term.write(string.char(136)..string.char(132))
+        else
+            term.write("  ")
+        end
+    end
+
+    term.setTextColor(colors.white)
+    term.setBackgroundColor(colors.gray)
+
+    print_edit_page_footer(h)
+
+    term.redirect(t)
+
+    manager.editWindow.setVisible(true)
+    manager.editWindow.setCursorBlink(false)
 end
 
 function color_edit_page.handle_event(ev)
+    if ev[1] == "key" then
+        if ev[2] == keys.left then
+            if manager.page.selected > 1 then
+                manager.page.selected = manager.page.selected - 1
+                manager.page.value = COLORS[manager.page.selected]
+                manager.page.print()
+            end
+        elseif ev[2] == keys.right then
+            if manager.page.selected < #COLORS then
+                manager.page.selected = manager.page.selected + 1
+                manager.page.value = COLORS[manager.page.selected]
+                manager.page.print()
+            end
+        end
+    end
 end
 
 function modules_selection_page.init()
@@ -330,7 +422,7 @@ function module_configuration_page.edit_option(id)
     manager.page.init(option, module_configuration_page.module)
     manager.page.id = id
     manager.page.scroll = manager.scroll
-    manager.page.value = option.value
+    manager.page.value = tostring(option.value)
     manager.page.print()
 end
 
