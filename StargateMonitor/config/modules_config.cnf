@@ -1,0 +1,39 @@
+{
+  status_button = {
+    button_height = 3,
+    outgoing_active_text = "O P E N",
+    outgoing_dialing_text = "D I A L I N G",
+    incoming_dialing_text = "I N C O M I N G",
+    idle_text = "I D L E",
+    incoming_active_text = "I N C O M I N G",
+    blink_interval = 0.5,
+    idle_color = "cyan",
+    enable_touch_reset = true,
+    button_width = 17,
+  },
+  last_feedback = {
+    line_width = -1,
+  },
+  menu_module = {
+    menu = {
+      {
+        button = "Status",
+        modules = {
+          "gate_visualization",
+          "status_button",
+          "last_feedback",
+        },
+      },
+      {
+        button = "Cartouche",
+        modules = {
+          "cartouche",
+        },
+      },
+    },
+  },
+  gate_visualization = {
+    enable_idle_blink = false,
+    enable_active_blink = true,
+  },
+}

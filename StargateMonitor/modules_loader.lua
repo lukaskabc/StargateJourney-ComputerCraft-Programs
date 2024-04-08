@@ -7,7 +7,7 @@ local modules_config = {}
 if fileExists(MODULES_CONFIG_FILE) then
     modules_config = loadFile(MODULES_CONFIG_FILE)
     try(function()
-        modules_config = textutils.unserialiseJSON(modules_config)
+        modules_config = textutils.unserialise(modules_config)
     end, function(err)
         modules_config = {}
     end)
@@ -46,6 +46,7 @@ for _,file in pairs(fs.list(abs_modules_folder)) do repeat
         printError("Module", module_name ,"does not contain run function! Skipping...")
     end
 
+    module.module_name = module_name
     modules[module_name] = module
     modules_count = modules_count + 1
     print("Loaded module", module_name)

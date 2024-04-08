@@ -36,9 +36,9 @@ local w, h = term.getSize()
 local win = window.create(term.current(), 1, 1, w, h+1, true)
 configuration_manager(modules, win)
 
-if true then
-    return
-end
+-- if true then
+--     return
+-- end
 
 local parallelMethods = {later_exec}
 

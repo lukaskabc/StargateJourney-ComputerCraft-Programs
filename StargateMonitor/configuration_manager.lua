@@ -41,6 +41,35 @@ local function close_edit_page()
     manager.page.print()
 end
 
+local function saveToModulesConfig(module_name, option)
+    local config = {}
+    try(function ()
+        local txt = loadFile(MODULES_CONFIG_FILE)
+        config = textutils.unserialise(txt)
+    end, function() end)
+
+    if config == nil then
+        config = {}
+    end
+    
+    if config[module_name] == nil then
+        config[module_name] = {}
+    end
+
+    config[module_name][option.name] = option.value
+
+    try(function()
+        if fileExists(MODULES_CONFIG_FILE_backup) then
+            fs.delete(MODULES_CONFIG_FILE_backup)
+        end
+    end, function() end)
+
+    if fileExists(MODULES_CONFIG_FILE) then
+        fs.copy(MODULES_CONFIG_FILE, MODULES_CONFIG_FILE_backup)
+    end
+    saveFile(MODULES_CONFIG_FILE, textutils.serialise(config, {compact = false}))
+end
+
 local function edit_page_event_handle(ev)
     if ev[1] == "key" then
         if ev[2] == keys.enter then
@@ -49,7 +78,7 @@ local function edit_page_event_handle(ev)
                 val = tonumber(val)
             end
             manager.page.option.value = val
-            print(manager.page.option)
+            saveToModulesConfig(manager.page.module.module_name, manager.page.option)
             
             close_edit_page()
         elseif ev[2] == keys["end"] then
@@ -228,8 +257,12 @@ function color_edit_page.print()
     local t = term.current()
     local w, h = manager.editWindow.getSize()
     term.redirect(manager.editWindow)
-    printCentered("Pick color:")
-    term.setCursorPos(math.floor((w/2)-#COLORS), 5)
+    term.setCursorPos(1, 3)
+    term.setTextColor(colors.lightGray)
+    printCentered("Use "..string.char(27).." left and right "..string.char(26).." arrows")
+    term.setCursorPos(1, 4)
+    printCentered("to change selected color")
+    term.setCursorPos(math.floor((w/2)-#COLORS), 6)
     
     for i, name in pairs(COLORS) do
         term.setBackgroundColor(colors[name])
@@ -271,6 +304,7 @@ function color_edit_page.handle_event(ev)
             end
         end
     end
+    edit_page_event_handle(ev)
 end
 
 function modules_selection_page.init()
@@ -294,10 +328,15 @@ function modules_selection_page.print()
     term.clear()
     term.setCursorPos(1, 1)
     term.setTextColor(HEADER_COLOR)
+    term.setBackgroundColor(colors.gray)
+    term.clearLine()
     printCentered("Configuration")
     term.setTextColor(colors.lightGray)
     term.setCursorPos(1,2)
+    term.clearLine()
     printCentered("Select module you want to configure:")
+    term.setBackgroundColor(colors.black)
+    term.setTextColor(colors.white)
 
     for _, m in pairs(modules_selection_page.modules) do
         table.insert(manager.lines, " "..m.name)
@@ -331,6 +370,8 @@ function modules_selection_page.handle_event(ev)
             manager.page.init(modules_selection_page.modules[manager.selected])
             manager.page.print()
         end
+    elseif ev[1] == "key" and (ev[2] == keys["end"] or ev[2] == keys.backspace) then
+        manager.terminate = true
     end
 end
 
@@ -382,11 +423,16 @@ function module_configuration_page.print()
     term.setCursorPos(1, 1)
     term.clear()
     term.setTextColor(HEADER_COLOR)
+    term.setBackgroundColor(colors.gray)
+    term.clearLine()
     write(string.char(171)..string.char(171))
     printCentered("Configuration "..string.char(187).." "..module_configuration_page.module.name)
     term.setCursorPos(1, 2)
+    term.clearLine()
     term.setTextColor(colors.lightGray)
     printCentered("Select option you want to change:")
+    term.setBackgroundColor(colors.black)
+    term.setTextColor(colors.white)
     term.redirect(t)
     manager.print()
     local ww, wh = manager.window.getSize()
@@ -396,6 +442,7 @@ end
 
 function module_configuration_page.edit_option(id)
     local option, name = nth_value(module_configuration_page.module.configuration, id)
+    option.name = name
     name = name:gsub("_", " "):gsub("^%l", string.upper)
     manager.editWindow.clear()
     manager.editWindow.setVisible(true)
@@ -469,7 +516,7 @@ function module_configuration_page.handle_event(ev)
             local wx, wy = manager.pageWindow.getPosition()
             local w, h = manager.pageWindow.getSize()
 
-            local id = y - wy + 1
+            local id = y - wy + 1 + manager.scroll - 1
             if manager.selected ~= id then
                 manager.selected = id
                 manager.print()
@@ -563,7 +610,7 @@ function manager.run(modules, win)
     manager.page.init()
     manager.page.print()
 
-    while true do repeat
+    while not manager.terminate do repeat
         local ev = {os.pullEvent()}
         local w, h = manager.pageWindow.getSize()
         if manager.page.override then
@@ -601,7 +648,6 @@ function manager.run(modules, win)
             end
         end
         manager.page.handle_event(ev)
-        -- manager.editWindow.restoreCursor()
     until true end
     term.redirect(terminal)
 end
