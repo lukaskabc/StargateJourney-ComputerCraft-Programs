@@ -273,7 +273,7 @@ local function rotational_symbol_engage(i, address, quick_dial)
 
     if quick_dial then 
         local prev = address[i - 1] or 0
-        direction = symbol - prev % 39 > 19
+        direction = (symbol - prev) % 39 > 19
         delay = 0
     end
 
@@ -362,6 +362,14 @@ function universal_interface.dial(address, quick_dial, direct_engage)
         engage = direct_symbol_engage
     else
         engage = rotational_symbol_engage
+    end
+
+    if ENABLE_DYNAMIC_CHEVRONS and interface.setChevronConfiguration then
+        if #addr == 8 then
+            interface.setChevronConfiguration({0, 1, 2, 3, 5, 6, 7, 8, 4})
+        elseif #addr == 9 then
+            interface.setChevronConfiguration({0, 1, 2, 3, 4, 5, 6, 7, 8})
+        end
     end
 
     -- call the dialing function

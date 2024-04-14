@@ -68,8 +68,12 @@ local function saveFile(filename, text)
     f:close()
 end
 
+local function urlToFile(url)
+    return string.sub(url, #BASE_URL)
+end
+
 function installer.downloadFile(url)
-    local target = string.sub(url, #BASE_URL)
+    local target = urlToFile(url)
 
     WIN.clear()
     term.redirect(WIN)
@@ -110,32 +114,14 @@ function installer.downloadFileSet(files, prepend)
     term.setTextColor(colors.white)
 end
 
-function installer.downloadModules()
-    term.clear()
-    print("Downloading selected modules...")
-    local modules = {}
-    for _, m in pairs(MODULES) do
-        if m.selected then
-            table.insert(modules, MODULE_BASE_URL .. m.module_file)
-            for _, file in pairs(m.files) do
-                table.insert(modules, file)
-            end
-        end
-    end
-
-    installer.downloadFileSet(modules)
-end
-
 function installer.print()
     term.clear()
     term.setCursorPos(1, 1)
     term.setTextColor(colors.orange)
-    print("Choose which modules you want to install:")
+    print("Choose module you want to install:")
     term.setTextColor(colors.lightGray)
-    print("Select modules with with mouse")
-    print("and confirm installation with ENTER")
-    print("At least one module must be selected")
-    term.setCursorPos(1, 6)
+    print("click module to begin installation")
+    term.setCursorPos(1, 4)
     term.setTextColor(colors.white)
 
     for _, m in pairs(MODULES) do
@@ -153,9 +139,19 @@ function installer.print()
     end
 end
 
+function installer.installModule(module)
+    term.clear()
+    print("Installing module " .. module.name)
+    installer.downloadFile(MODULE_BASE_URL .. module.module_file)
+    installer.downloadFileSet(module.files)
+
+
+    module.selected = true
+end
+
 function installer.run()
     print("Downloading required files...")
-    installer.downloadFileSet(REQUIRED_FILES, BASE_URL)
+    -- installer.downloadFileSet(REQUIRED_FILES, BASE_URL)
     if not fs.isDir("modules") then fs.makeDir("modules") end
     if not fs.isDir("config") then fs.makeDir("config") end
     if not fs.isDir("assets") then fs.makeDir("assets") end
@@ -167,13 +163,12 @@ function installer.run()
         if ev[1] == "mouse_click" then
 
             local _, y = ev[3], ev[4]
-            y = y - 5
+            y = y - 3
             if y < 1 or y > #MODULES then
                 break -- continue
             end
 
-            MODULES[y].selected = not MODULES[y].selected
-            installer.print()
+            installer.installModule(MODULES[y])
         elseif ev[1] == "key" then
             if ev[2] == keys.enter then
                 installer.downloadModules()

@@ -173,6 +173,12 @@ function boolean_edit_page.init(option, module)
 end
 
 function boolean_edit_page.print()
+    if manager.page.value == "true" or manager.page.value == true then
+        manager.page.value = true
+    else
+        manager.page.value = false
+    end
+
     local t = term.current()
     local w, h = manager.editWindow.getSize()
     term.redirect(manager.editWindow)
@@ -182,6 +188,7 @@ function boolean_edit_page.print()
     term.setCursorPos(3, 4)
     printCentered("or press space to change it")
     term.setCursorPos(3, 6)
+
     if manager.page.value then
         term.setBackgroundColor(colors.green)
     else
@@ -330,6 +337,7 @@ function modules_selection_page.print()
     term.setTextColor(HEADER_COLOR)
     term.setBackgroundColor(colors.gray)
     term.clearLine()
+    write(string.char(171)..string.char(171))
     printCentered("Configuration")
     term.setTextColor(colors.lightGray)
     term.setCursorPos(1,2)
@@ -350,6 +358,11 @@ function modules_selection_page.handle_event(ev)
         local x, y = ev[3], ev[4]
         local wx, wy = manager.pageWindow.getPosition()
         local w, h = manager.pageWindow.getSize()
+
+        if ev[3] > 0 and ev[3] < 3 and ev[4] == 1 then
+            manager.terminate = true
+            return
+        end
 
         local id = y - wy + 1
         if manager.selected ~= id then

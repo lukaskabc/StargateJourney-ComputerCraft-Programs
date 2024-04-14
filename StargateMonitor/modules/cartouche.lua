@@ -2,7 +2,7 @@ local universal_interface
 local pager
 
 local WIN = nil
-local ADDRESS_TABLE = {{name="Abydos", address = {26, 6, 14, 31, 11, 29}}, {name="Lantea"}, {name="Jina adresa s hodne dlouhym nazvem ktery"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name = "uplne neco jineho"}, {name="a jeste jineho"}, {name = "a posledni"}}
+local ADDRESS_TABLE = {{name="Abydos", address = {26, 6, 14, 31, 11, 29}}, {name="Lantea", address = {1, 2, 3, 4, 5, 6, 7}}, {name="Jina adresa s hodne dlouhym nazvem ktery", address = {27, 29, 10, 19, 15, 30, 9, 21}}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name="co sem"}, {name="mam psat"}, {name="Abydos"}, {name="Lantea"}, {name="Jina adresa"}, {name="uz nevim"}, {name = "uplne neco jineho"}, {name="a jeste jineho"}, {name = "a posledni"}}
 local FILE = fs.combine(ROOT_DIR, "cartouche.json")
 local TITLE = nil
 
@@ -140,7 +140,17 @@ function Module.touch_event(id, x, y)
     pager:showAlert("Dialing " .. ADDRESS_TABLE[addrID].name, -1)
     
     try(function() 
-        universal_interface.dial(ADDRESS_TABLE[addrID].address)
+        parallel.waitForAll(function()
+            universal_interface.dial(ADDRESS_TABLE[addrID].address)
+        end, function()
+            while universal_interface.isDialing() do
+                local ev = {os.pullEvent()}
+                if ev[1] == "stargate_reset" or ev[1] == "stargate_disconnected" or ev[1] == "stargate_incoming_wormhole" or (ev[1] == "stargate_chevron_engaged" and #ev > 3 and ev[4]) then
+                    universal_interface.abortDial()
+                    return
+                end
+            end
+        end)
         pager:draw(Module.page)
     end, function(e)
         if e == STARGATE_ALREADY_DIALING then

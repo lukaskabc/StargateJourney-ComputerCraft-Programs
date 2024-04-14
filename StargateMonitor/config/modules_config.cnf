@@ -11,9 +11,6 @@
     enable_touch_reset = true,
     button_width = 17,
   },
-  last_feedback = {
-    line_width = -1,
-  },
   menu_module = {
     menu = {
       {

@@ -31,10 +31,22 @@ local function show_window(win)
     win.redraw()
 end
 
+local function deep_copy(source, target)
+    target = target or {}
+    for k, v in pairs(source) do
+        if type(v) == "table" then
+            target[k] = deep_copy(v, target[k])
+        else
+            target[k] = v
+        end
+    end
+    return target
+end
+
 -- module_names: {"button name", "module_name"}
 -- windows: table with windows of all modules from modules_loader
 -- window: window for this module
-function Module:new(module_names, windows, window)
+function Module:new(module_names, windows, window, align_left_space)
     local o = {}
     setmetatable(o, self)
     self.__index = self
@@ -44,6 +56,8 @@ function Module:new(module_names, windows, window)
     o.windows = {}
     o.buttons = {}
     o.active_button = nil
+    o.align_left_space = align_left_space or nil
+    o.configuration = deep_copy(Module.configuration, {})
 
     -- init module names and their windows
     for i, m in pairs(module_names) do
@@ -77,7 +91,7 @@ function Module:new(module_names, windows, window)
         end
         btns[name] = true
         if line_width + #name + 3 <= w then
-            line_width = line_width + #name + 3
+            line_width = line_width + #name + 4
             table.insert(o.menu_lines[line], name)
         elseif line_width == 0 then
             printError("Error during Menu buidling")
@@ -87,7 +101,8 @@ function Module:new(module_names, windows, window)
         else
             line_width = 0
             line = line + 4
-            o.menu_lines[line] = {name}
+            o.menu_lines[line] = {}
+            table.insert(o.menu_lines[line], name)
         end
     until true
     end
@@ -112,11 +127,16 @@ function Module:renderButtons()
     for line, menu_line in pairs(self.menu_lines) do
         local lineLength = 0
         for _, btn in pairs(menu_line) do
-            lineLength = lineLength + #btn
+            lineLength = lineLength + #btn + 2
         end
 
-        local space = math.floor((ww - lineLength) / (#menu_line + 1))
+        local space = math.ceil((ww - lineLength) / (#menu_line+1))
         local position = space
+
+        if self.align_left_space then
+            space = self.align_left_space
+            position = 1
+        end
 
         for _, btn in pairs(menu_line) do
             if self.active_button == btn then
@@ -145,7 +165,7 @@ function Module:renderButtons()
     self.buttons_filled = true
 end
 
-function Module:handle_click(x, y)
+function Module:handle_click(x, y, cb)
     local wx, wy = self.window.getPosition()
     local ww, wh = self.window.getSize()
 
@@ -166,14 +186,22 @@ function Module:handle_click(x, y)
 
     if self.active_button ~= nil then
         for _, w in pairs(self.windows[self.active_button]) do
-            hide_window(w)
+            if cb then 
+                cb(w)
+            else
+                hide_window(w)
+            end
         end
     end
 
     self.active_button = button.name
 
     for _, w in pairs(self.windows[button.name]) do
-        show_window(w)
+        if cb then 
+            cb(w)
+        else
+            show_window(w)
+        end
     end
 
     self:renderButtons()

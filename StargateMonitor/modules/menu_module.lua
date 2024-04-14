@@ -49,6 +49,6 @@ function Module.run()
     end
 end
 
-Module.name = "Main menu"
+-- Module.name = "Main menu"
 Module.description = "Button menu for switching displayed modules"
 return Module

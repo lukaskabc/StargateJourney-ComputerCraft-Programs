@@ -8,11 +8,27 @@
 -- https://github.com/lukaskabc/StargateJourney-ComputerCraft-Programs/tree/main/StargateMonitor
 --
 ROOT_DIR = shell.dir()
+local TERM_WIDTH, TERM_HEIGHT = term.getSize()
+COMPUTER_WINDOW = window.create(term.current(), 1, 1, TERM_WIDTH, TERM_HEIGHT, true)
+COMPUTER_WINDOW.monitor = term.current()
+
+DEBUG_WINDOW_WRAPPER = window.create(term.current(), 1, 1, TERM_WIDTH, TERM_HEIGHT, false)
+DEBUG_WINDOW_WRAPPER.setCursorPos(1, TERM_HEIGHT)
+DEBUG_WINDOW_WRAPPER.setBackgroundColor(colors.black)
+DEBUG_WINDOW_WRAPPER.setTextColor(colors.gray)
+DEBUG_WINDOW_WRAPPER.write("Press END or Backspace to exit log")
+
+DEBUG_WINDOW = window.create(DEBUG_WINDOW_WRAPPER, 1, 1, TERM_WIDTH, TERM_HEIGHT - 1, true)
+local CONFIGURATION_WINDOW = window.create(term.current(), 1, 1, TERM_WIDTH, TERM_HEIGHT+1, false)
+term.redirect(DEBUG_WINDOW)
 EXIT = {} -- exception used for silent program exit
 require("globals")
 require("try")
 require("utils")
 require("run_later")
+
+COMPUTER_WINDOW.monitor.update = function() COMPUTER_WINDOW.redraw() end
+COMPUTER_WINDOW.monitor.isCreateLink = function() return false end
 
 --[[
 TODOs: 
@@ -32,13 +48,16 @@ modules["universal_interface"] = universal_interface
 local pretty_print = require("cc.pretty").pretty_print
 local configuration_manager = require("configuration_manager")
 
-local w, h = term.getSize()
-local win = window.create(term.current(), 1, 1, w, h+1, true)
-configuration_manager(modules, win)
-
--- if true then
---     return
--- end
+function CONFIGURATION_MANAGER()
+    COMPUTER_WINDOW.setVisible(false)
+    CONFIGURATION_WINDOW.setVisible(true)
+    CONFIGURATION_WINDOW.redraw()
+    configuration_manager(modules, CONFIGURATION_WINDOW)
+    CONFIGURATION_WINDOW.setVisible(false)
+    DEBUG_WINDOW_WRAPPER.setVisible(true)
+    DEBUG_WINDOW_WRAPPER.redraw()
+    os.reboot()
+end
 
 local parallelMethods = {later_exec}
 
@@ -88,6 +107,15 @@ for module_name, module in pairs(modules) do
 end
 
 local function error_handle(err)
+    COMPUTER_WINDOW.setVisible(false)
+    CONFIGURATION_WINDOW.setVisible(false)
+
+    DEBUG_WINDOW_WRAPPER.setVisible(true)
+    DEBUG_WINDOW_WRAPPER.clear()
+    DEBUG_WINDOW_WRAPPER.redraw()
+    DEBUG_WINDOW.redraw()
+    term.redirect(DEBUG_WINDOW)
+
     if err == EXIT then
         return
     end

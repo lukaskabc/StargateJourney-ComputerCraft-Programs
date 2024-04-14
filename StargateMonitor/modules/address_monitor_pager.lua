@@ -245,6 +245,7 @@ function Pager:showAlert(text, timeout)
 
     local w, h = self.window.getSize()
     local x = math.floor((w - string.len(text)) / 2)
+    x = math.max(1, x)
     local y = math.floor((h - self.firstLine) / 2)
 
     self.window.setTextColor(colors.red)
