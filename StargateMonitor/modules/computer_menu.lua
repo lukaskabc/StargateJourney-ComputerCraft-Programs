@@ -2,6 +2,7 @@
 local WIN
 local module = {name = "Terminal menu"}
 local BUTTONS = {}
+local cartouche_manager = nil
 
 module.configuration = {
     manage_cartouche = {type="boolean", value=true, description="Enable cartouche management button"},
@@ -12,9 +13,24 @@ module.configuration = {
     background_color = {type="color", value="gray", description="Button background color"},
 }
 
+
+function module.manageCartouche()
+    if cartouche_manager == nil then
+        printError("Cartouche manager is not installed!")
+        return
+    end
+    cartouche_manager.run()
+end
+
 function module.init(modules, windows)
     local w, h = COMPUTER_WINDOW.getSize()
     WIN = window.create(COMPUTER_WINDOW, 1, 2, w, 7 --[[2 lines of buttons]], true)
+    cartouche_manager = modules["cartouche_manager"]
+
+    if cartouche_manager == nil and module.configuration.manage_cartouche.value then
+        printError("Cartouche manager is not installed! Disabling...")
+        module.configuration.manage_cartouche.value = false
+    end
 
     BUTTONS = {
         {

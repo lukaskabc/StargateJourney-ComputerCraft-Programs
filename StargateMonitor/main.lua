@@ -138,7 +138,15 @@ local function error_handle(err)
     printError("Please report this error to the script author")
     print()
     printError("Press any key to restart the computer...")
-    os.pullEvent("key")
+    local f = {}
+    table.insert(f, function() os.pullEvent("key") end)
+
+    if AUTO_REBOOT_DELAY > 0 then
+        printError("Auto rebooting after", AUTO_REBOOT_DELAY, "seconds...")
+        table.insert(f, function() os.sleep(AUTO_REBOOT_DELAY) end)
+    end
+
+    parallel.waitForAny(table.unpack(f))
     os.reboot()
     return 1
 end

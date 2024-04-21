@@ -271,9 +271,11 @@ local function rotational_symbol_engage(i, address, quick_dial)
     local direction = i % 2 == 0
     local delay = CHEVRON_ENCODE_DELAY
 
-    if quick_dial then 
+    if quick_dial or SHORT_ROTATION then 
         local prev = address[i - 1] or 0
         direction = (symbol - prev) % 39 > 19
+    end
+    if quick_dial then
         delay = 0
     end
 

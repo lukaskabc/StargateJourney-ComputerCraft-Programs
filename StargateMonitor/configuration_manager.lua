@@ -1,4 +1,4 @@
-local manager = {modules, window, pageWindow, lines = {}, scroll = 1, selected = 0, page}
+local manager = {modules = {}, window = nil, pageWindow = nil, page = nil, selector = nil}
 local modules_selection_page = {}
 local module_configuration_page = {}
 local text_edit_page = {override = true}
@@ -7,6 +7,7 @@ local number_edit_page = {override = true}
 local color_edit_page = {override = true}
 local pretty_print = require("cc.pretty").pretty_print
 local ccstrings = require("cc.strings")
+manager.selector = require("term_list_selector")
 local HEADER_COLOR = colors.orange
 local COLORS = {"white", "orange", "magenta", "lightBlue", "yellow", "lime", "pink", "gray", "lightGray", "cyan", "purple", "blue", "brown", "green", "red", "black"}
 
@@ -36,8 +37,8 @@ local function close_edit_page()
     local old = manager.page
     manager.page = module_configuration_page
     manager.page.init(old.module)
-    manager.selected = old.id
-    manager.scroll = old.scroll
+    manager.selector.selected = old.id
+    manager.selector.scroll = old.scroll
     manager.page.print()
 end
 
@@ -314,85 +315,10 @@ function color_edit_page.handle_event(ev)
     edit_page_event_handle(ev)
 end
 
-function modules_selection_page.init()
-    modules_selection_page.modules = {}
-    local w, h = manager.window.getSize()
-    manager.pageWindow.reposition(1, 3, w, h-2)
-    manager.pageWindow.clear()
-    manager.pageWindow.redraw()
-    manager.lines = {}
-    manager.selected = 0
-    manager.scroll = 1
-
-    for _, m in pairs(manager.modules) do
-        if m.configuration ~= nil and m.name ~= nil then
-            table.insert(modules_selection_page.modules, m)
-        end
-    end
-end
-
-function modules_selection_page.print()
-    term.clear()
-    term.setCursorPos(1, 1)
-    term.setTextColor(HEADER_COLOR)
-    term.setBackgroundColor(colors.gray)
-    term.clearLine()
-    write(string.char(171)..string.char(171))
-    printCentered("Configuration")
-    term.setTextColor(colors.lightGray)
-    term.setCursorPos(1,2)
-    term.clearLine()
-    printCentered("Select module you want to configure:")
-    term.setBackgroundColor(colors.black)
-    term.setTextColor(colors.white)
-
-    for _, m in pairs(modules_selection_page.modules) do
-        table.insert(manager.lines, " "..m.name)
-    end
-
-    manager.print()
-end
-
-function modules_selection_page.handle_event(ev)
-    if ev[1] == "mouse_click" then
-        local x, y = ev[3], ev[4]
-        local wx, wy = manager.pageWindow.getPosition()
-        local w, h = manager.pageWindow.getSize()
-
-        if ev[3] > 0 and ev[3] < 3 and ev[4] == 1 then
-            manager.terminate = true
-            return
-        end
-
-        local id = y - wy + 1
-        if manager.selected ~= id then
-            manager.selected = id
-            manager.print()
-            return
-        end
-        if y >= wy and y <= wy+h and id > 0 and id <= #modules_selection_page.modules then
-            manager.page = module_configuration_page
-            manager.selectedModule = id
-            manager.page.init(modules_selection_page.modules[id])
-            manager.page.print()
-        end
-    elseif ev[1] == "key" and ev[2] == keys.enter then
-        if manager.selected > 0 then
-            manager.page = module_configuration_page
-            manager.selectedModule = manager.selected
-            manager.page.init(modules_selection_page.modules[manager.selected])
-            manager.page.print()
-        end
-    elseif ev[1] == "key" and (ev[2] == keys["end"] or ev[2] == keys.backspace) then
-        manager.terminate = true
-    end
-end
-
 function module_configuration_page.init(module)
     module_configuration_page.module = module
     manager.lines = {}
-    manager.selected = 0
-    manager.scroll = 1
+    manager.selector.init(manager.pageWindow, manager.lines, module_configuration_page.update_description, module_configuration_page.edit_option)
 
     local ww, wh = manager.window.getSize()
     local wx, wy = manager.pageWindow.getPosition()
@@ -447,7 +373,7 @@ function module_configuration_page.print()
     term.setBackgroundColor(colors.black)
     term.setTextColor(colors.white)
     term.redirect(t)
-    manager.print()
+    manager.selector.print()
     local ww, wh = manager.window.getSize()
     module_configuration_page.description_window.reposition(1, wh - 2, ww, 2)
     module_configuration_page.description_window.redraw()
@@ -481,24 +407,24 @@ function module_configuration_page.edit_option(id)
 
     manager.page.init(option, module_configuration_page.module)
     manager.page.id = id
-    manager.page.scroll = manager.scroll
+    manager.page.scroll = manager.selector.scroll
     manager.page.value = tostring(option.value)
     manager.page.print()
 end
 
 function module_configuration_page.update_description()
     module_configuration_page.description_window.setVisible(true)
-    module_configuration_page.description_window.clear()
-    if manager.selected > 0 then
+    -- module_configuration_page.description_window.clear()
+    if manager.selector.selected > 0 then
         local i = 1
         module_configuration_page.description_window.setCursorPos(1, 1)
         local w, h = module_configuration_page.description_window.getSize()
-        local c = nth_value(module_configuration_page.module.configuration, manager.selected)
+        local c = nth_value(module_configuration_page.module.configuration, manager.selector.selected)
         if c ~= nil then
             local lines = ccstrings.wrap(c.description, w)
             for j = 1, math.min(2, #lines) do
                 module_configuration_page.description_window.setCursorPos(1, j)
-                module_configuration_page.description_window.write(lines[j])
+                module_configuration_page.description_window.write(ccstrings.ensure_width(lines[j], w))
             end
         end
     end
@@ -510,98 +436,76 @@ function module_configuration_page.handle_event(ev)
         if ev[2] == keys.backspace or ev[2] == keys["end"] then
             manager.page = modules_selection_page
             manager.page.init()
-            manager.selected = manager.selectedModule
+            manager.selector.selected = manager.selectedModule
             manager.page.print()
-            return
-        elseif ev[2] == keys.enter then
-            module_configuration_page.edit_option(manager.selected)
             return
         end
     elseif ev[1] == "mouse_click" then
-        if ev[3] > 0 and ev[3] < 3 and ev[4] == 1 then
+        if ev[3] > 0 and ev[3] < 3 and ev[4] == 1 then -- back button
             manager.page = modules_selection_page
             manager.page.init()
-            manager.selected = manager.selectedModule
+            manager.selector.selected = manager.selectedModule
             manager.page.print()
             return
-        else
-            local x, y = ev[3], ev[4]
-            local wx, wy = manager.pageWindow.getPosition()
-            local w, h = manager.pageWindow.getSize()
-
-            local id = y - wy + 1 + manager.scroll - 1
-            if manager.selected ~= id then
-                manager.selected = id
-                manager.print()
-                module_configuration_page.update_description()
-                return
-            end
-            if y >= wy and y <= wy+h and id > 0 then
-                module_configuration_page.edit_option(id)
-                return
-            end 
         end
     end
 
     module_configuration_page.update_description()
 end
 
-function manager.print()
-    local terminal = term.current()
-    local win = manager.pageWindow
-    term.redirect(win)
 
-    term.setCursorPos(1, 1)
-    local w, h = win.getSize()
+function modules_selection_page.init()
+    modules_selection_page.modules = {}
+    local w, h = manager.window.getSize()
+    manager.pageWindow.reposition(1, 3, w, h-2)
+    manager.pageWindow.clear()
+    manager.pageWindow.redraw()
+    manager.lines = {}
 
-    for i = manager.scroll, manager.scroll + h - 2 do
-        if i > 0 and i <= #manager.lines then
-            local text = manager.lines[i]
-            term.setTextColor(colors.white)
-            term.setBackgroundColor(colors.black)
+    manager.selector.init(manager.pageWindow, manager.lines, function() end, function(id)
+        manager.page = module_configuration_page
+        manager.selectedModule = id
+        manager.page.init(modules_selection_page.modules[id])
+        manager.page.print()
+    end)
 
-            if i == manager.selected then
-                term.setTextColor(colors.black)
-                term.setBackgroundColor(colors.lightGray)
-            end
-
-            if type(text) == "function" then
-                text()
-            else
-                print(ccstrings.ensure_width(text))
-            end
+    for _, m in pairs(manager.modules) do
+        if m.configuration ~= nil and m.name ~= nil then
+            table.insert(modules_selection_page.modules, m)
+            table.insert(manager.lines, " "..m.name)
         end
     end
-
-    term.redirect(terminal)
 end
 
--- function manager.loadLines()
---     manager.lines = {}
---     for module_name, module in pairs(manager.modules) do repeat
---         if module.configuration == nil then
---             break -- continue
---         end
-        
---         table.insert(manager.lines, string.char(187).." "..module_name)
+function modules_selection_page.print()
+    term.clear()
+    term.setCursorPos(1, 1)
+    term.setTextColor(HEADER_COLOR)
+    term.setBackgroundColor(colors.gray)
+    term.clearLine()
+    write(string.char(171)..string.char(171))
+    printCentered("Configuration")
+    term.setTextColor(colors.lightGray)
+    term.setCursorPos(1,2)
+    term.clearLine()
+    printCentered("Select module you want to configure:")
+    term.setBackgroundColor(colors.black)
+    term.setTextColor(colors.white)
 
---         for option_name, config_option in pairs(module.configuration) do
---             table.insert(manager.lines, "  "..option_name..": "..tostring(config_option.value))
---         end
---     until true end
--- end
+    manager.selector.print()
+end
 
--- direction: -1 up, 1 down
-function manager.doScroll(direction, h)
+function modules_selection_page.handle_event(ev)
+    if ev[1] == "mouse_click" then
+        local x, y = ev[3], ev[4]
 
-    if direction < 0 and manager.scroll == 1 then
-        return
-    elseif direction > 0 and manager.scroll >= #manager.lines - h + 2 then
-        return
+        if x > 0 and x < 3 and y == 1 then
+            manager.terminate = true
+            return
+        end
+    elseif ev[1] == "key" and (ev[2] == keys["end"] or ev[2] == keys.backspace) then
+        manager.terminate = true
     end
-
-    manager.scroll = math.max(1, math.min(#manager.lines - h + 2, manager.scroll + direction))
-    manager.print()
 end
 
 function manager.run(modules, win)
@@ -612,6 +516,8 @@ function manager.run(modules, win)
     manager.page = modules_selection_page
     local terminal = term.current()
     term.redirect(manager.window)
+
+    manager.selector.init(manager.pageWindow, manager.lines)
 
     module_configuration_page.description_window = window.create(win, 1, wh - 1, ww, 2, false)
 
@@ -625,42 +531,14 @@ function manager.run(modules, win)
 
     while not manager.terminate do repeat
         local ev = {os.pullEvent()}
-        local w, h = manager.pageWindow.getSize()
         if manager.page.override then
             manager.page.handle_event(ev)
             break -- continue
         end
-
-        if ev[1] == "mouse_scroll" then
-            local s = 1
-            if ev[2] < 0 then
-                s = -1
-            end
-
-            manager.doScroll(s, h)
-        elseif ev[1] == "key" then
-            if ev[2] == keys.up then
-                if manager.selected > 1 then
-                    manager.selected = manager.selected - 1
-                    if manager.selected < manager.scroll then
-                        manager.doScroll(-1, h)
-                    end
-                end
-                manager.print()
-            elseif ev[2] == keys.down then
-                if manager.selected < 1 then
-                    manager.selected = manager.scroll - 1
-                end
-                if manager.selected < #manager.lines then
-                    manager.selected = manager.selected + 1
-                    if manager.selected >= manager.scroll + h - 1 then
-                        manager.doScroll(1, h)
-                    end
-                end
-                manager.print()
-            end
+        
+        if not manager.selector.handle_event(ev) then
+            manager.page.handle_event(ev)
         end
-        manager.page.handle_event(ev)
     until true end
     term.redirect(terminal)
 end
