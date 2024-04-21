@@ -30,20 +30,46 @@ require("run_later")
 COMPUTER_WINDOW.monitor.update = function() COMPUTER_WINDOW.redraw() end
 COMPUTER_WINDOW.monitor.isCreateLink = function() return false end
 
+local function existWithDebug()
+    COMPUTER_WINDOW.setVisible(false)
+    CONFIGURATION_WINDOW.setVisible(false)
+
+    DEBUG_WINDOW_WRAPPER.setVisible(true)
+    DEBUG_WINDOW.setVisible(true)
+    DEBUG_WINDOW_WRAPPER.clear()
+    DEBUG_WINDOW.redraw()
+    DEBUG_WINDOW_WRAPPER.redraw()
+    term.redirect(DEBUG_WINDOW)
+end
+
 --[[
 TODOs: 
 Support for create link in text only modules (like last feedback)
 and add checks that module is text only and so supports create links
 
 ]]
+try(function()
+    require("stargate_connection_instructor")(false)
+end, function (err)
+    existWithDebug()
+    printError("Stargate connection instructor execution failed, please report this bug with the following error message:")
+    printError(err)
+end)
 
-require("stargate_connection_instructor")(false)
 term.redirect(DEBUG_WINDOW)
 
 local universal_interface = require("universal_interface")
 universal_interface.checkInterfaceConnected()
 
-local modules, windows = table.unpack(require("modules_loader"))
+local modules, windows
+try(function()
+    modules, windows = table.unpack(require("modules_loader"))
+end, function (err)
+    existWithDebug()
+    printError("Modules loader error occured, please report this bug with the following error message:")
+    printError(err)
+end)
+
 modules["universal_interface"] = universal_interface
 
 local pretty_print = require("cc.pretty").pretty_print
@@ -54,9 +80,6 @@ function CONFIGURATION_MANAGER()
     CONFIGURATION_WINDOW.setVisible(true)
     CONFIGURATION_WINDOW.redraw()
     configuration_manager(modules, CONFIGURATION_WINDOW)
-    CONFIGURATION_WINDOW.setVisible(false)
-    DEBUG_WINDOW_WRAPPER.setVisible(true)
-    DEBUG_WINDOW_WRAPPER.redraw()
     os.reboot()
 end
 
@@ -84,6 +107,7 @@ end
 local function addParallelMethod(method, module_name)
     table.insert(parallelMethods, function()
         try(method, function(err)
+            existWithDebug()
             if err == EXIT then
                 return
             end
@@ -108,14 +132,7 @@ for module_name, module in pairs(modules) do
 end
 
 local function error_handle(err)
-    COMPUTER_WINDOW.setVisible(false)
-    CONFIGURATION_WINDOW.setVisible(false)
-
-    DEBUG_WINDOW_WRAPPER.setVisible(true)
-    DEBUG_WINDOW_WRAPPER.clear()
-    DEBUG_WINDOW_WRAPPER.redraw()
-    DEBUG_WINDOW.redraw()
-    term.redirect(DEBUG_WINDOW)
+    existWithDebug()
 
     if err == EXIT then
         return
@@ -157,4 +174,8 @@ print("Startup completed")
 
 try(function()
     parallel.waitForAny(table.unpack(parallelMethods))
+    existWithDebug()
+    print()
+    printError("Some module exited")
+    print()
 end, error_handle)

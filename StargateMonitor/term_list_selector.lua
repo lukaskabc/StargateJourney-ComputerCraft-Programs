@@ -1,36 +1,48 @@
 local ccstrings = require("cc.strings")
-local module = {lines = {}, scroll = 1, selected = 0, on_selected_cb = function(id) end, on_select_cb = function(id) end}
+local Selector = {}
 WIN = nil
 
 -- on select is called when item is highlited, 
 -- on selected is called when item is selected (second time)
-function module.init(win, lines, onSelectCB, onSelectedCB)
+function Selector:new(win, lines, onSelectCB, onSelectedCB)
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+
+    o.lines = lines or {}
+    o.scroll = 1
+    o.selected = 0
+    o.on_select_cb = onSelectCB or function(id) end
+    o.on_selected_cb = onSelectedCB or function(id) end
+
     WIN = win
-    module.lines = lines
+    self.lines = lines
     if onSelectCB then
-        module.on_select_cb = onSelectCB
+        self.on_select_cb = onSelectCB
     end
     if onSelectedCB then
-        module.on_selected_cb = onSelectedCB
+        self.on_selected_cb = onSelectedCB
     end
-    module.scroll = 1
-    module.selected = 0
+    self.scroll = 1
+    self.selected = 0
+
+    return o
 end
 
-function module.print()
+function Selector:print()
     local terminal = term.current()
     term.redirect(WIN)
 
     term.setCursorPos(1, 1)
     local w, h = WIN.getSize()
 
-    for i = module.scroll, module.scroll + h - 2 do
-        if i > 0 and i <= #module.lines then
-            local text = module.lines[i]
+    for i = self.scroll, self.scroll + h - 2 do
+        if i > 0 and i <= #self.lines then
+            local text = self.lines[i]
             term.setTextColor(colors.white)
             term.setBackgroundColor(colors.black)
 
-            if i == module.selected then
+            if i == self.selected then
                 term.setTextColor(colors.black)
                 term.setBackgroundColor(colors.white)
             end
@@ -46,15 +58,15 @@ function module.print()
     term.redirect(terminal)
 end
 
-function module.doScroll(direction, h)
-    if direction < 0 and module.scroll == 1 then
+function Selector:doScroll(direction, h)
+    if direction < 0 and self.scroll == 1 then
         return
-    elseif direction > 0 and module.scroll >= #module.lines - h + 2 then
+    elseif direction > 0 and self.scroll >= #self.lines - h + 2 then
         return
     end
 
-    module.scroll = math.max(1, math.min(#module.lines - h + 2, module.scroll + direction))
-    module.print()
+    self.scroll = math.max(1, math.min(#self.lines - h + 2, self.scroll + direction))
+    self:print()
 end
 
 local function isInWindow(x, y)
@@ -63,7 +75,7 @@ local function isInWindow(x, y)
     return x >= wx and x < wx + w and y >= wy and y < wy + h
 end
 
-function module.handle_event(ev)
+function Selector:handle_event(ev)
     if not WIN.isVisible() then
         return false
     end
@@ -77,56 +89,56 @@ function module.handle_event(ev)
             direction = -1
         end
     
-        module.doScroll(direction, h)
+        self:doScroll(direction, h)
     elseif ev[1] == "key" then
         if ev[2] == keys.up then
-            if module.selected > 1 then
-                module.selected = module.selected - 1
-                if module.selected < module.scroll then
-                    module.doScroll(-1, h)
+            if self.selected > 1 then
+                self.selected = self.selected - 1
+                if self.selected < self.scroll then
+                    self.doScroll(-1, h)
                 end
-                module.print()
-                module.on_select_cb(id)
+                self:print()
+                self.on_select_cb(id)
                 return true
             end
         elseif ev[2] == keys.down then
-            if module.selected < 1 then
-                module.selected = module.scroll - 1
+            if self.selected < 1 then
+                self.selected = self.scroll - 1
             end
-            if module.selected < #module.lines then
-                module.selected = module.selected + 1
-                if module.selected >= module.scroll + h - 1 then
-                    module.doScroll(1, h)
+            if self.selected < #self.lines then
+                self.selected = self.selected + 1
+                if self.selected >= self.scroll + h - 1 then
+                    self.doScroll(1, h)
                 end
-                module.print()
-                module.on_select_cb(id)
+                self:print()
+                self.on_select_cb(id)
                 return true
             end
         elseif ev[2] == keys.enter or ev[2] == keys.space then
-            if module.selected > 0 and module.selected <= #module.lines then
-                module.on_selected_cb(module.selected)
+            if self.selected > 0 and self.selected <= #self.lines then
+                self.on_selected_cb(self.selected)
                 return true
             end
         end
     elseif ev[1] == "mouse_click" and isInWindow(ev[3], ev[4]) then
         local x, y = ev[3], ev[4]
         
-        local id = y - wy + module.scroll -- + 1 - 1
-        if module.selected ~= id then
-            module.selected = id
-            module.print()
-            module.on_select_cb(id)
+        local id = y - wy + self.scroll -- + 1 - 1
+        if self.selected ~= id then
+            self.selected = id
+            self:print()
+            self.on_select_cb(id)
             -- call on highlight callback
             -- which should be used for updating selected description
             return true
         end
         if y >= wy and y <= wy+h and id > 0 then
             -- call selected callback
-            module.on_selected_cb(id)
+            self.on_selected_cb(id)
             return true
         end
     end
 end
 
 
-return module
+return Selector

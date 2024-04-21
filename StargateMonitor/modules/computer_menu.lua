@@ -8,6 +8,7 @@ module.configuration = {
     manage_cartouche = {type="boolean", value=true, description="Enable cartouche management button"},
     show_log = {type="boolean", value=true, description="Enable log display button"},
     edit_config = {type="boolean", value=true, description="Enable reconfigure button"},
+    reset_stargate = {type="boolean", value=true, description="Enable stargate reset button"},
     reboot = {type="boolean", value=false, description="Enable reboot button"},
     text_color = {type="color", value="white", description="Button text color"},
     background_color = {type="color", value="gray", description="Button background color"},
@@ -42,6 +43,11 @@ function module.init(modules, windows)
             text = "Edit config",
             option = "edit_config",
             action = CONFIGURATION_MANAGER
+        },
+        {
+            text = "Reset Stargate",
+            option = "reset_stargate",
+            action = modules["universal_interface"].reset
         },
         {
             text = "Reboot",

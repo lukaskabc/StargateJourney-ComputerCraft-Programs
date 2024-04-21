@@ -205,6 +205,10 @@ function module.handle_event(ev)
         end
         return
     elseif ev[1] == "mouse_click" then
+        if ev[4] == TERM_HEIGHT and ev[3] >= TERM_WIDTH - #module.configuration.dial_button_text.value + 1 then
+            module.activate()
+            return
+        end
         restoreCursor()
     end
 end

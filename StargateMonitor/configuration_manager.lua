@@ -7,7 +7,7 @@ local number_edit_page = {override = true}
 local color_edit_page = {override = true}
 local pretty_print = require("cc.pretty").pretty_print
 local ccstrings = require("cc.strings")
-manager.selector = require("term_list_selector")
+local term_list_selector = require("term_list_selector")
 local HEADER_COLOR = colors.orange
 local COLORS = {"white", "orange", "magenta", "lightBlue", "yellow", "lime", "pink", "gray", "lightGray", "cyan", "purple", "blue", "brown", "green", "red", "black"}
 
@@ -318,7 +318,7 @@ end
 function module_configuration_page.init(module)
     module_configuration_page.module = module
     manager.lines = {}
-    manager.selector.init(manager.pageWindow, manager.lines, module_configuration_page.update_description, module_configuration_page.edit_option)
+    manager.selector = term_list_selector:new(manager.pageWindow, manager.lines, module_configuration_page.update_description, module_configuration_page.edit_option)
 
     local ww, wh = manager.window.getSize()
     local wx, wy = manager.pageWindow.getPosition()
@@ -373,7 +373,7 @@ function module_configuration_page.print()
     term.setBackgroundColor(colors.black)
     term.setTextColor(colors.white)
     term.redirect(t)
-    manager.selector.print()
+    manager.selector:print()
     local ww, wh = manager.window.getSize()
     module_configuration_page.description_window.reposition(1, wh - 2, ww, 2)
     module_configuration_page.description_window.redraw()
@@ -462,7 +462,7 @@ function modules_selection_page.init()
     manager.pageWindow.redraw()
     manager.lines = {}
 
-    manager.selector.init(manager.pageWindow, manager.lines, function() end, function(id)
+    manager.selector = term_list_selector:new(manager.pageWindow, manager.lines, function() end, function(id)
         manager.page = module_configuration_page
         manager.selectedModule = id
         manager.page.init(modules_selection_page.modules[id])
@@ -492,7 +492,7 @@ function modules_selection_page.print()
     term.setBackgroundColor(colors.black)
     term.setTextColor(colors.white)
 
-    manager.selector.print()
+    manager.selector:print()
 end
 
 function modules_selection_page.handle_event(ev)
@@ -517,7 +517,7 @@ function manager.run(modules, win)
     local terminal = term.current()
     term.redirect(manager.window)
 
-    manager.selector.init(manager.pageWindow, manager.lines)
+    manager.selector = term_list_selector:new(manager.pageWindow, manager.lines)
 
     module_configuration_page.description_window = window.create(win, 1, wh - 1, ww, 2, false)
 
@@ -536,7 +536,7 @@ function manager.run(modules, win)
             break -- continue
         end
         
-        if not manager.selector.handle_event(ev) then
+        if not manager.selector:handle_event(ev) then
             manager.page.handle_event(ev)
         end
     until true end
