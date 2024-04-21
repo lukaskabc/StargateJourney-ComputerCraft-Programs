@@ -30,7 +30,7 @@ require("run_later")
 COMPUTER_WINDOW.monitor.update = function() COMPUTER_WINDOW.redraw() end
 COMPUTER_WINDOW.monitor.isCreateLink = function() return false end
 
-local function existWithDebug()
+local function exitWithDebug()
     COMPUTER_WINDOW.setVisible(false)
     CONFIGURATION_WINDOW.setVisible(false)
 
@@ -51,7 +51,7 @@ and add checks that module is text only and so supports create links
 try(function()
     require("stargate_connection_instructor")(false)
 end, function (err)
-    existWithDebug()
+    exitWithDebug()
     printError("Stargate connection instructor execution failed, please report this bug with the following error message:")
     printError(err)
 end)
@@ -65,7 +65,7 @@ local modules, windows
 try(function()
     modules, windows = table.unpack(require("modules_loader"))
 end, function (err)
-    existWithDebug()
+    exitWithDebug()
     printError("Modules loader error occured, please report this bug with the following error message:")
     printError(err)
 end)
@@ -107,7 +107,7 @@ end
 local function addParallelMethod(method, module_name)
     table.insert(parallelMethods, function()
         try(method, function(err)
-            existWithDebug()
+            exitWithDebug()
             if err == EXIT then
                 return
             end
@@ -132,7 +132,7 @@ for module_name, module in pairs(modules) do
 end
 
 local function error_handle(err)
-    existWithDebug()
+    exitWithDebug()
 
     if err == EXIT then
         return
@@ -174,7 +174,7 @@ print("Startup completed")
 
 try(function()
     parallel.waitForAny(table.unpack(parallelMethods))
-    existWithDebug()
+    exitWithDebug()
     print()
     printError("Some module exited")
     print()

@@ -1,6 +1,6 @@
 local ccstrings = require("cc.strings")
 local Selector = {}
-WIN = nil
+local WIN = nil
 
 -- on select is called when item is highlited, 
 -- on selected is called when item is selected (second time)

@@ -1,1 +1,38 @@
-{}
+[
+    {
+        "galaxy": "pegasus",
+        "name": "SCRIPT_LOCAL_ADDRESS",
+        "isLocal": true,
+        "address": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+        ]
+    },
+    {
+        "extragalactic_address": [
+            18,
+            20,
+            1,
+            15,
+            14,
+            7,
+            19
+        ],
+        "galaxy": "pegasus",
+        "name": "Lantea",
+        "address": [
+            29,
+            5,
+            17,
+            34,
+            6,
+            12
+        ]
+    }
+]

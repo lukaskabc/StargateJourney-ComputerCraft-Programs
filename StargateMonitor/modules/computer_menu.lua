@@ -20,7 +20,7 @@ function module.manageCartouche()
         printError("Cartouche manager is not installed!")
         return
     end
-    cartouche_manager.run()
+    cartouche_manager.execute()
 end
 
 function module.init(modules, windows)
@@ -137,7 +137,7 @@ function module.run()
             if key == keys.backspace or key == keys["end"] then
                 hide_log()
             end
-        else
+        elseif COMPUTER_WINDOW.isVisible() then
             module.drawMenu()
             local ev, button, x, y = os.pullEvent("mouse_click")
 

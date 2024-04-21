@@ -1,6 +1,6 @@
 local ccstrings = require("cc.strings")
 local module = {address = {}, cursor = 1}
-WIN = {}
+local WIN = {}
 local MAX_SYMBOL_VALUE = 38 -- inclusive
 local universal_interface = {}
 
@@ -19,7 +19,7 @@ module.configuration = {
 
 function module.init(modules, windows)
     universal_interface = modules["universal_interface"]
-    WIN = window.create(COMPUTER_WINDOW, 1, TERM_HEIGHT - 4, TERM_WIDTH, 5)
+    WIN = window.create(COMPUTER_WINDOW, 1, TERM_HEIGHT - 4, TERM_WIDTH, 5, true)
     WIN.setBackgroundColor(colors[module.configuration.background_color.value])
     WIN.clear()
     WIN.redraw()
@@ -205,7 +205,7 @@ function module.handle_event(ev)
         end
         return
     elseif ev[1] == "mouse_click" then
-        if ev[4] == TERM_HEIGHT and ev[3] >= TERM_WIDTH - #module.configuration.dial_button_text.value + 1 then
+        if ev[4] == TERM_HEIGHT and ev[3] >= TERM_WIDTH - #module.configuration.dial_button_text.value then
             module.activate()
             return
         end
@@ -242,8 +242,9 @@ function module.showAlert(text, timeout)
     WIN.setTextColor(tc)
     WIN.setBackgroundColor(bc)
 
-    WIN.setCursorBlink(false)
-    COMPUTER_WINDOW.restoreCursor()
+    COMPUTER_WINDOW.restoreCursor() -- hides cursor in DHD window
+    COMPUTER_WINDOW.setCursorPos(1, 1)
+    COMPUTER_WINDOW.setCursorBlink(false)
 
     if timeout == nil then
         timeout = ALERT_TIMEOUT
