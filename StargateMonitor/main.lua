@@ -8,7 +8,7 @@
 -- https://github.com/lukaskabc/StargateJourney-ComputerCraft-Programs/tree/main/StargateMonitor
 --
 ROOT_DIR = shell.dir()
-local TERM_WIDTH, TERM_HEIGHT = term.getSize()
+TERM_WIDTH, TERM_HEIGHT = term.getSize()
 COMPUTER_WINDOW = window.create(term.current(), 1, 1, TERM_WIDTH, TERM_HEIGHT, true)
 COMPUTER_WINDOW.monitor = term.current()
 
@@ -20,7 +20,7 @@ DEBUG_WINDOW_WRAPPER.write("Press END or Backspace to exit log")
 
 DEBUG_WINDOW = window.create(DEBUG_WINDOW_WRAPPER, 1, 1, TERM_WIDTH, TERM_HEIGHT - 1, true)
 local CONFIGURATION_WINDOW = window.create(term.current(), 1, 1, TERM_WIDTH, TERM_HEIGHT+1, false)
-term.redirect(DEBUG_WINDOW)
+
 EXIT = {} -- exception used for silent program exit
 require("globals")
 require("try")
@@ -38,6 +38,7 @@ and add checks that module is text only and so supports create links
 ]]
 
 require("stargate_connection_instructor")(false)
+term.redirect(DEBUG_WINDOW)
 
 local universal_interface = require("universal_interface")
 universal_interface.checkInterfaceConnected()
@@ -124,6 +125,7 @@ local function error_handle(err)
         if err == STARGATE_NOT_CONNECTED_ERROR or
         err == INTERFACE_NOT_CONNECTED_ERROR or
         err == INSUFFICIENT_INTERFACE or
+        err == STARGATE_IS_ACTIVE or
         err == STARGATE_ALREADY_DIALING then
             os.reboot()
             return

@@ -73,7 +73,7 @@ end
 
 local function edit_page_event_handle(ev)
     if ev[1] == "key" then
-        if ev[2] == keys.enter then
+        if ev[2] == keys.enter or ev[2] == keys.numPadEnter then
             local val = manager.page.value
             if manager.page.option.type == "number" then
                 val = tonumber(val)

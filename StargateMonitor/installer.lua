@@ -170,7 +170,7 @@ function installer.run()
 
             installer.installModule(MODULES[y])
         elseif ev[1] == "key" then
-            if ev[2] == keys.enter then
+            if ev[2] == keys.enter or ev[2] == keys.numPadEnter then
                 installer.downloadModules()
             end
         end

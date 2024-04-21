@@ -2,6 +2,7 @@ STARGATE_NOT_CONNECTED_ERROR = {message = "Interface is not connected to a starg
 INTERFACE_NOT_CONNECTED_ERROR = {message = "Interface not found!"}
 INSUFFICIENT_INTERFACE = {message = "Crystal interface is required for this gate type!"}
 STARGATE_ALREADY_DIALING = {message = "Stargate is already dialing!"}
+STARGATE_IS_ACTIVE = {message = "Stargate is active!"}
 local FEEDBACK = require("stargate_feedbacks")
 -- dialing milkyway stargate will use three step symbol encoding (open, encode, close)
 local THREE_STEP_ENCODE = true
@@ -308,12 +309,19 @@ end
 -- Dials specified address
 -- params quick_dial and direct_engage are optional and will override global settings when specified
 -- throws STARATE_ALREADY_DIALING if stargate has already engaged any chevron
-function universal_interface.dial(address, quick_dial, direct_engage)
+function universal_interface.non_blocking_dial(address, quick_dial, direct_engage)
     universal_interface.checkInterfaceConnected()
+    if universal_interface.isStargateConnected() then
+        error(STARGATE_IS_ACTIVE)
+    end
     if universal_interface.dial_in_progress or universal_interface.getChevronsEngaged() > 0 then
         error(STARGATE_ALREADY_DIALING)
-        return FEEDBACK.UNKNOWN_ERROR
     end
+
+    try(function()
+        universal_interface.reset()
+    end)
+    
 
     if quick_dial == nil then
         quick_dial = QUICK_DIAL
@@ -386,6 +394,20 @@ function universal_interface.dial(address, quick_dial, direct_engage)
 
     universal_interface.dial_in_progress = false
     return result
+end
+
+function universal_interface.dial(address, quick_dial, direct_engage)
+    parallel.waitForAll(function()
+        universal_interface.non_blocking_dial(address, quick_dial, direct_engage)
+    end, function()
+        while universal_interface.isDialing() do
+            local ev = {os.pullEvent()}
+            if ev[1] == "stargate_reset" or ev[1] == "stargate_disconnected" or ev[1] == "stargate_incoming_wormhole" or (ev[1] == "stargate_chevron_engaged" and #ev > 3 and ev[4]) then
+                universal_interface.abortDial()
+                return
+            end
+        end
+    end)
 end
 
 -- does not resets stargate!

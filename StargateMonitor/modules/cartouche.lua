@@ -140,21 +140,11 @@ function Module.touch_event(id, x, y)
     pager:showAlert("Dialing " .. ADDRESS_TABLE[addrID].name, -1)
     
     try(function() 
-        parallel.waitForAll(function()
-            universal_interface.dial(ADDRESS_TABLE[addrID].address)
-        end, function()
-            while universal_interface.isDialing() do
-                local ev = {os.pullEvent()}
-                if ev[1] == "stargate_reset" or ev[1] == "stargate_disconnected" or ev[1] == "stargate_incoming_wormhole" or (ev[1] == "stargate_chevron_engaged" and #ev > 3 and ev[4]) then
-                    universal_interface.abortDial()
-                    return
-                end
-            end
-        end)
+        universal_interface.dial(ADDRESS_TABLE[addrID].address)
         pager:draw(Module.page)
     end, function(e)
-        if e == STARGATE_ALREADY_DIALING then
-            pager:showAlert("Stargate is already dialing!", -1)
+        if e and e.message then
+            pager:showAlert(e.message, -1)
         else
             error(e)
         end
