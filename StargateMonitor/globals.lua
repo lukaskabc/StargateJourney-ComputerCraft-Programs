@@ -23,3 +23,5 @@ ENABLE_DYNAMIC_CHEVRONS = true
 -- seconds to wait before rebooting computer after crash
 -- set to 0 to disable auto reboot
 AUTO_REBOOT_DELAY = 0
+
+MAX_SYMBOL_VALUE = 38 -- inclusive

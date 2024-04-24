@@ -62,6 +62,12 @@ function universal_interface.reset()
 
     interface.disconnectStargate()
 
+    -- if we are on new version where isCHevronOpen is available
+    -- and chevron is not open, then we dont have to close it
+    if interface.isChevronOpen and not interface.isChevronOpen() then
+        return FEEDBACK.NONE
+    end
+
     if interface.closeChevron then
         -- stargate is reseted first
         -- chevron is closed if possible

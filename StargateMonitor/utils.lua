@@ -43,6 +43,23 @@ function addressToString(addr)
     return "-" .. table.concat(addr, "-") .. "-"
 end
 
+function isAboveMaxSymbolValue(symbol)
+    return (tonumber(symbol) or 0) >= MAX_SYMBOL_VALUE
+end
+
+function isSymbolPresentTwice(address, symbol)
+    local count = 0
+    for _,v in pairs(address) do
+        if tonumber(v) == tonumber(symbol) then
+            count = count + 1
+            if count > 1 then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 function recommendReinstall()
     printError("Did you installed program correctly?")
     printError("Please reinstall the program with installer:")

@@ -186,11 +186,7 @@ function Module:handle_click(x, y, cb)
 
     if self.active_button ~= nil then
         for _, w in pairs(self.windows[self.active_button]) do
-            if cb then 
-                cb(w)
-            else
-                hide_window(w)
-            end
+            hide_window(w)
         end
     end
 

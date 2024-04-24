@@ -1,6 +1,5 @@
 local ccstrings = require("cc.strings")
 local Selector = {}
-local WIN = nil
 
 -- on select is called when item is highlited, 
 -- on selected is called when item is selected (second time)
@@ -15,7 +14,7 @@ function Selector:new(win, lines, onSelectCB, onSelectedCB)
     o.on_select_cb = onSelectCB or function(id) end
     o.on_selected_cb = onSelectedCB or function(id) end
 
-    WIN = win
+    o.WIN = win
     self.lines = lines
     if onSelectCB then
         self.on_select_cb = onSelectCB
@@ -31,10 +30,10 @@ end
 
 function Selector:print()
     local terminal = term.current()
-    term.redirect(WIN)
+    term.redirect(self.WIN)
 
     term.setCursorPos(1, 1)
-    local w, h = WIN.getSize()
+    local w, h = self.WIN.getSize()
 
     for i = self.scroll, self.scroll + h - 2 do
         if i > 0 and i <= #self.lines then
@@ -69,21 +68,21 @@ function Selector:doScroll(direction, h)
     self:print()
 end
 
-local function isInWindow(x, y)
-    local wx, wy = WIN.getPosition()
-    local w, h = WIN.getSize()
+function Selector:isInWindow(x, y)
+    local wx, wy = self.WIN.getPosition()
+    local w, h = self.WIN.getSize()
     return x >= wx and x < wx + w and y >= wy and y < wy + h
 end
 
 function Selector:handle_event(ev)
-    if not WIN.isVisible() then
+    if not self.WIN.isVisible() then
         return false
     end
 
-    local w, h = WIN.getSize()
-    local wx, wy = WIN.getPosition()
+    local w, h = self.WIN.getSize()
+    local wx, wy = self.WIN.getPosition()
 
-    if ev[1] == "mouse_scroll" and isInWindow(ev[3], ev[4]) then
+    if ev[1] == "mouse_scroll" and self:isInWindow(ev[3], ev[4]) then
         local direction = 1
         if ev[2] < 0 then
             direction = -1
@@ -120,7 +119,7 @@ function Selector:handle_event(ev)
                 return true
             end
         end
-    elseif ev[1] == "mouse_click" and isInWindow(ev[3], ev[4]) then
+    elseif ev[1] == "mouse_click" and self:isInWindow(ev[3], ev[4]) then
         local x, y = ev[3], ev[4]
         
         local id = y - wy + self.scroll -- + 1 - 1

@@ -1,7 +1,6 @@
 local ccstrings = require("cc.strings")
 local module = {address = {}, cursor = 1}
 local WIN = {}
-local MAX_SYMBOL_VALUE = 38 -- inclusive
 local universal_interface = {}
 
 module.configuration = {
@@ -35,27 +34,10 @@ function module.resetAddress()
     end
 end
 
-local function isAboveMaxSymbolValue(symbol)
-    return (tonumber(symbol) or 0) >= MAX_SYMBOL_VALUE
-end
-
-function module.isSymbolPresentTwice(symbol)
-    local count = 0
-    for _,v in pairs(module.address) do
-        if tonumber(v) == tonumber(symbol) then
-            count = count + 1
-            if count > 1 then
-                return true
-            end
-        end
-    end
-    return false
-end
-
 local function isAddressValid()
     local length = 0
     for _,v in pairs(module.address) do
-        if tonumber(v) == nil or module.isSymbolPresentTwice(v) or isAboveMaxSymbolValue(v) then
+        if tonumber(v) == nil or isSymbolPresentTwice(module.address, v) or isAboveMaxSymbolValue(v) then
             break
         end
         length = length + 1
@@ -152,7 +134,7 @@ function module.print()
     term.write("- ")
     for i=1, 8 do
         term.setTextColor(colors[module.configuration.address_color.value])
-        if isAboveMaxSymbolValue(module.address[i]) or module.isSymbolPresentTwice(module.address[i]) then
+        if isAboveMaxSymbolValue(module.address[i]) or isSymbolPresentTwice(module.address, module.address[i]) then
             term.setTextColor(colors[module.configuration.error_color.value])
         end
         term.write(module.address[i])

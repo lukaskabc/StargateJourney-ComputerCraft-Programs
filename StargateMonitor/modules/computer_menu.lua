@@ -132,17 +132,18 @@ function module.run()
     local wx, wy = WIN.getPosition()
     local ww, wh = WIN.getSize()
     while true do
-        if module.isLogShowed then
-            local ev, key = os.pullEvent("key")
+        local ev = {os.pullEvent()}
+        if module.isLogShowed and ev[1] == "key" then
+            local ev, key = table.unpack(ev)
             if key == keys.backspace or key == keys["end"] then
                 hide_log()
             end
-        elseif COMPUTER_WINDOW.isVisible() then
-            module.drawMenu()
-            local ev, button, x, y = os.pullEvent("mouse_click")
+        elseif COMPUTER_WINDOW.isVisible() and WIN.isVisible() and ev[1] == "mouse_click" then
+            local ev, button, x, y = table.unpack(ev)
 
             if x >= wx and x < wx + ww and y >= wy and y < wy + wh then
                 module.menu:handle_click(x, y, click_callback)
+                module.drawMenu()
             end
         end
     end
