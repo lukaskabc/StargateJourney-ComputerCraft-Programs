@@ -123,6 +123,11 @@ function Selector:handle_event(ev)
         local x, y = ev[3], ev[4]
         
         local id = y - wy + self.scroll -- + 1 - 1
+        if id < 1 or id > #self.lines then
+            self.selected = 0
+            self:print()
+            return true
+        end
         if self.selected ~= id then
             self.selected = id
             self:print()

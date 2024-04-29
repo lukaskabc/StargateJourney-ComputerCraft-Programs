@@ -40,6 +40,9 @@ function saveFile(filename, text)
 end
 
 function addressToString(addr)
+    if #addr == 0 then
+        return "-"
+    end
     return "-" .. table.concat(addr, "-") .. "-"
 end
 
